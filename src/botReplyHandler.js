@@ -1,4 +1,6 @@
+
 const YOUR_GENERATED_SECRET = process.env.REACT_APP_YOUR_GENERATED_SECRET;
+const useApi = false;
 
 const getConversationHistory = (currentMessage, messagesTree) => {
     let conversation = "";
@@ -28,9 +30,13 @@ const getBotReply = async (input, currentMessage, messagesTree) => {
     console.log(fullPrompt);
 
     try {
+        if (!useApi) {
+            throw new Error("API usage is turned off");
+        }
+        
         const resp = await fetch('https://api.promptperfect.jina.ai/RlYg9Ir63bt7Sr1w1b34', {
             headers: {
-                'x-api-key': `token ${YOUR_GENERATED_SECRET + "1"}`,
+                'x-api-key': `token ${YOUR_GENERATED_SECRET}`,
                 'content-type': 'application/json'
             }, 
             body: JSON.stringify({"parameters": {"prompt": fullPrompt}}),

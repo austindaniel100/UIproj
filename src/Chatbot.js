@@ -101,6 +101,7 @@ const Chatbot = () => {
   
   const messagesRef = useRef(null);
   const messageRefs = useRef([]);
+  
 
   
 let currentRow = 0;
