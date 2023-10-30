@@ -4,6 +4,9 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { solarizedlight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { TreeView, TreeItem } from '@mui/lab';
+import getBotReply from './botReplyHandler';
+
+
 import * as d3 from 'd3';
 
 const components = {
@@ -71,13 +74,14 @@ const MiniView = ({ messages, setScrollToMessage }) => {
 
   
 
-const MessageNode = (message = '', sender = 'root', row = 0, col = 0) => {
+const MessageNode = (parent, message = '', sender = 'root', row = 0, col = 0) => {
     return { 
         message: message, 
         sender: sender, 
         row: row,
         col: col,
-        children: [] 
+        children: [],
+        parent: parent
     };
 };
 
@@ -94,8 +98,6 @@ const Chatbot = () => {
   // Inside your Chatbot component:
   const [messages, setMessages] = useState({ sender: 'root', message: '', children: [] });
 
-  
-  const [translateY, setTranslateY] = useState(0);
   
   const messagesRef = useRef(null);
   const messageRefs = useRef([]);
@@ -287,9 +289,12 @@ const traverseAndCalculateTotalHeight = (node, path = '') => {
 
 
 
-const sendMessage = () => {
-    const userMessage = MessageNode(input, 'user');
-    const botReply = MessageNode('Response from chatbot', 'bot');
+const sendMessage = async () => {
+    
+    
+    const userMessage = MessageNode(currentMessage, input, 'user');
+    
+    
     
     // If there's a current message, add the new user message as its child.
     if (currentMessage) {
@@ -297,20 +302,26 @@ const sendMessage = () => {
             currentMessage.children = [];
         }
         currentMessage.children.push(userMessage);
-        userMessage.children = [botReply];
     } else {
         // If no current message, add directly to the root's children.
         setMessages(prevMessages => ({
             ...prevMessages,
             children: [...prevMessages.children, userMessage]
         }));
-        userMessage.children = [botReply];
     }
+    setCurrentMessage(userMessage);
+    setInput('');
+    
+    const botResponse = await getBotReply(input, currentMessage, messages);
+
+    console.log(botResponse);
+    const botReply = MessageNode(userMessage, botResponse, 'bot');
+    userMessage.children = [botReply];
 
     // Set the user's message as the current message
+
     setCurrentMessage(botReply);
 
-    setInput('');
 };
 
 
@@ -384,29 +395,6 @@ const printMessagesTree = (node, depth = 0) => {
 };
 
 
-
-const branchMessage = () => {
-    const userMessage = MessageNode(input, 'user');
-    
-    // If there's a current message, add the new user message as its child.
-    if (currentMessage) {
-        if (!currentMessage.children) {
-            currentMessage.children = [];
-        }
-        currentMessage.children.push(userMessage);
-    } else {
-        // If no current message, add directly to the root's children.
-        setMessages(prevMessages => ({
-            ...prevMessages,
-            children: [...prevMessages.children, userMessage]
-        }));
-    }
-
-    // Set the user's message as the current message
-    setCurrentMessage(userMessage);
-
-    setInput('');
-};
 
 
 
