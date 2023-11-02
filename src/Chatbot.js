@@ -98,6 +98,20 @@ const buttonStyles = {
   margin: "10px",
 };
 
+/**
+ * Creates a new message node object with provided properties.
+ *
+ * @param {Object} parent - Parent node of the current message node.
+ * @param {Function} func - Function to execute before creating the message node.
+ * @param {string} message - The message content. Default is an empty string.
+ * @param {string} sender - The sender of the message. Default is "root".
+ * @param {number} row - The row index. Default is 0.
+ * @param {number} col - The column index. Default is 0.
+ * @param {boolean} context - Indicates if the node is in context. Default is false.
+ *
+ * @returns {Object} A new message node with unique ID, message content, sender, position (row, col), children, parent, and context status.
+ */
+
 const MessageNode = (
   parent,
   func,
@@ -121,6 +135,29 @@ const MessageNode = (
     inContext: context,
   };
 };
+
+
+/**
+ * MiniView - A React component that visualizes a hierarchical tree of messages using D3.
+ *
+ * The component listens to various user interactions like key presses and mouse events 
+ * to provide a focused view on the tree, zooming functionality, and navigation through 
+ * the messages.
+ *
+ * Props:
+ * - messages: The root node of the message hierarchy to visualize.
+ * - setCurrentMessage: A callback function to set the currently focused message.
+ * - increment: A number used to trigger the tree's focused view.
+ * - current: The current message node being viewed.
+ * - setInc: A function to update the increment value.
+ * 
+ * State:
+ * - computedNodes: The list of computed message nodes after applying the D3 tree layout.
+ * - svgDimensions: An object containing the dimensions of the SVG container.
+ * 
+ * The component also uses D3 for data visualization, and manages its own SVG 
+ * rendering via React refs.
+ */
 
 function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
   const ref = useRef();
@@ -252,7 +289,14 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
       window.removeEventListener("resize", handleResize);
     };
   }, [messages, svgRef.current, setCurrentMessage, increment, setInc]);
-
+  
+  /**
+ * handleFocusClick:
+ * Adjusts the SVG viewport to focus on `computedNodes`.
+ * It calculates the bounding box around the nodes, then
+ * zooms and translates the SVG to center those nodes.
+ * 
+ */
   const handleFocusClick = () => {
     const svg = d3.select(svgRef.current);
 
@@ -379,6 +423,44 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
     </div>
   );
 }
+
+
+/**
+ * Chatbot Component
+ * 
+ * This component represents an interactive chatbot interface. 
+ * It features a dynamic message layout based on a tree structure where
+ * messages can have multiple child messages.
+ * 
+ * Features:
+ * 1. Messages are stored in a tree structure.
+ * 2. User can navigate the message tree using arrow keys.
+ * 3. Messages are displayed in a unique grid layout with center-focused columns.
+ * 
+ * State:
+ * - `messageCount`: Tracks the number of messages.
+ * - `currentMessage`: Holds the currently selected or focused message.
+ * - `input`: Tracks the current input value for the user message.
+ * - `messages`: A tree structure to hold the conversation.
+ * 
+ * Methods:
+ * - `setAllNodesContext`: Sets the context for all nodes in the tree.
+ * - `setContextDefault`: Adjusts the context from the current node to the root.
+ * - `isColumnOccupied`: Checks if a column in the grid is already occupied.
+ * - `findNextMessageToRight`: Finds the next message to the right of the current.
+ * - ... (and many more navigation methods)
+ * - `assignRowAndCol`: Assigns a row and column to each message node based on the tree structure.
+ * - `countTotalMessages`: Counts the total number of messages in the tree.
+ * - `sendMessage`: Sends a new message and updates the tree structure.
+ * - `renderGridMessages`: Renders the messages in a grid layout with the center column in focus.
+ * 
+ * Effects:
+ * - An effect listens for arrow key presses to navigate the messages.
+ * 
+ * Note:
+ * The message layout is designed to visually represent the hierarchical structure of the conversation.
+ * The code makes heavy use of tree traversal algorithms to manage and display messages.
+ */
 
 const Chatbot = () => {
   const textareaRef = useRef(null);
