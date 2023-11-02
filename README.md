@@ -1,11 +1,25 @@
 # Chatbot UI
 
-## Getting Started
+## How to Run
 
-To run the project, execute the following:
-```
-npm start
-```
+1. **Clone the Repository:**
+    ```bash
+    git clone https://github.com/austindaniel100/UIproj.git
+    cd UIproj
+    ```
+
+2. **Install Dependencies:**
+    ```bash
+    npm install
+    ```
+
+3. **Start the Application:**
+    ```bash
+    npm start
+    ```
+
+The application will start running on `http://localhost:3000`, or another available port if `3000` is already in use.
+
 
 ## Interacting with the Bot
 
