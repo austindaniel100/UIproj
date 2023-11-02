@@ -23,71 +23,355 @@ const components = {
     )
   }
 };
-const MiniView = ({ messages, setScrollToMessage }) => {
-    const [expandedNodes, setExpandedNodes] = useState([]);
 
-    const renderTreeItems = (node, index) => {
-      if (!node || node.sender === 'root') return null;
+const svgStyles = {
+    width: '100%',
+    height: '90%',
+    backgroundColor: '#23282d', // Slightly darker background
+    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // Subtle drop shadow
+    borderRadius: '4px', // Optional, but might look good with the shadow
+    border: 'none', // Remove the border since we're using shadows
+    overflow: 'hidden' // To ensure shadows and rounded corners look right
+};
 
-      const nodeId = String(index);
-      if (!expandedNodes.includes(nodeId)) {
-        setExpandedNodes((prevNodes) => [...prevNodes, nodeId]);
-      }
+const userMessageStyle = {
+    maxWidth: '80%',
+    padding: '8px 16px',  // Consistent with other elements
+    border: 'none',
+    borderRadius: '4px',  // Consistent radius
+    backgroundColor: '#15334f',  // A bit darker variation of blue for depth
+    wordWrap: 'break-word',
+    whiteSpace: 'pre-wrap',
+    color: '#e0e0e0',
+    textAlign: 'left',
+    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)"  // Subtle shadow for depth
+};
 
-      return (
-        <TreeItem 
-          nodeId={nodeId} 
-          label={
-            <div 
-              style={{
-                background: node.sender === 'user' ? '#e6f7ff' : '#f6f6f6',
-                border: '1px solid #ccc',
-                borderRadius: '10px',
-                marginBottom: '5px',
-                wordWrap: 'break-word',
-                whiteSpace: 'pre-wrap',
-                padding: '5px 10px',
-                cursor: 'pointer',  // Make it look clickable
-                display: 'inline-block',  // Required to prevent full width styling
-              }}
-              onClick={() => setScrollToMessage(nodeId)}
-            >
-              {`${node.sender}: ${node.message.substring(0, 10)}...`}
-            </div>
-          }
-        >
-          {node.children && node.children.map((child, childIndex) => renderTreeItems(child, `${index}-${childIndex}`))}
-        </TreeItem>
-      );
-    };
-
-    return (
-        <TreeView
-          expanded={expandedNodes}
-          onNodeToggle={(event, nodeIds) => setExpandedNodes(nodeIds)}
-        >
-          {messages.children && messages.children.map((message, index) => renderTreeItems(message, index))}
-        </TreeView>
-    );
+const botMessageStyle = {
+    ...userMessageStyle,
+    backgroundColor: '#262626',  // A tad darker grey for distinction
+    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.3)"  // Slightly stronger shadow
 };
 
 
-  
+const textareaStyles = {
+    flex: 1,
+    padding: '8px 16px',
+    resize: 'none',
+    outline: 'none',
+    backgroundColor: "#222",
+    color: "white",
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: "16px",
+    fontWeight: "500",
+    letterSpacing: "0.5px",
+    zIndex: 1000,
+    transition: "all 0.2s",
+    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
+    margin: '8px 0',  // Add some vertical spacing
+    '&:focus': {
+        boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.3)",
+    },
+    '::placeholder': {
+        color: "#666",
+    }
+};
 
-const MessageNode = (parent, message = '', sender = 'root', row = 0, col = 0) => {
+
+const buttonStyles = {
+    background: "#8A2BE2",  // Purple shade
+    color: "white",
+    padding: "8px 16px",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    transition: "all 0.2s",
+    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
+    fontSize: "16px",
+    fontWeight: "500",
+    letterSpacing: "0.5px",
+    textDecoration: "none",
+    display: "inline-block",
+    margin: "10px"
+};
+
+
+
+const MessageNode = (parent, func, message = '', sender = 'root', row = 0, col = 0, context = false) => {
+    if (func) {func();}
     return { 
+        id: `${Date.now()}-${Math.random()}`,
         message: message, 
         sender: sender, 
         row: row,
         col: col,
         children: [],
-        parent: parent
+        parent: parent,
+        inContext: context
     };
 };
 
 
+
+function MiniView({messages, setCurrentMessage, increment, current, setInc}) {
+    const ref = useRef();
+    const svgRef = useRef();
+    const gRef = useRef();
+    const [computedNodes, setComputedNodes] = useState([]);
+    const [svgDimensions, setSvgDimensions] = useState({ width: 0, height: 0 });
+    const findNodeById = (root, id) => {
+        if (root.id === id) return root;
+        if (root.children) {
+          for (const child of root.children) {
+            const found = findNodeById(child, id);
+            if (found) return found;
+          }
+        }
+        return null;
+      };     
+      const handleKeyDown = (event) => {
+        if ((event.ctrlKey && event.key === 'q')) {
+            handleFocusClick();
+        }
+    };
+    const handleMouseDown = (event) => {
+        // Check if the middle mouse button is clicked (button value 1 represents the middle button)
+        if (event.button === 1) {
+            handleFocusClick();
+        }
+    };
+    
+
+    const zoom = d3.zoom()
+        .scaleExtent([0.1, 3])
+        .on("zoom", (event) => {
+            const g = d3.select(gRef.current);
+            g.attr('transform', event.transform);
+        });
+
+        useEffect(() => {
+            if (svgRef.current) {
+                setSvgDimensions({
+                    width: svgRef.current.clientWidth,
+                    height: svgRef.current.clientHeight
+                });
+            }
+            const width = ref.current.offsetWidth;
+            const height = ref.current.offsetHeight;
+            const svg = d3.select(svgRef.current);
+            const g = d3.select(gRef.current);
+    
+            const treeLayout = d3.tree().nodeSize([80, 150]); // Adjust the 50 as needed
+
+            treeLayout.separation((a, b) => {
+                return a.parent === b.parent ? 1.5 : 2;  // Adjust the values as needed
+            });
+            
+
+            const root = d3.hierarchy(messages);
+            treeLayout(root);
+    
+            const nodes = root.descendants().slice(1);
+            const links = root.links().filter(link => link.source !== root);
+
+            const xOffset = -200;  // or whatever value you deem fit
+nodes.forEach(node => {
+    node.x += xOffset;
+});
+            
+
+    
+            setComputedNodes(nodes);
+    
+            g.selectAll(".link")
+                .data(links)
+                .join("path")
+                .attr("class", "link")
+                .attr("fill", "none")
+                .attr("stroke", "#555")
+                .attr("stroke-opacity", 0.4)
+                .attr("stroke-width", 1.5)
+                .attr("d", d => `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`);
+    
+                g.selectAll(".node")
+                .data(nodes)
+.join("rect")
+.attr("class", "node")
+.attr("width", 100)
+.attr("height", 50)
+.attr("rx", 15)
+.attr("ry", 15)
+.attr("fill", d => d.data.sender === 'bot' ? '#2e2e2e' : '#1a3b5d')
+.attr("stroke", d => d.data.id === current?.id ? 'white' : 'none')
+.attr("stroke-width", d => d.data.id === current?.id ? "2" : "0")
+.attr("x", d => d.x - 50)
+.attr("y", d => d.y - 20)
+.attr("filter", d => d.data.inContext ? "url(#glow)" : "none") // Apply the glow filter for nodes in context
+.on("click", (event, node) => {
+    const originalNode = findNodeById(messages, node.data.id);
+    if (originalNode) {
+        setCurrentMessage(originalNode);
+    }
+});
+console.log(current);
+            
+    g.selectAll(".label")
+    .data(nodes)
+    .join("text")
+    .attr("class", "label")
+    .text(d => d.data.message.substring(0, 10) + "...")
+    .attr("x", d => d.x)
+    .attr("y", d => d.y + 5)
+    .attr("fill", "#d1d1d1")  // Set text color to a softer light gray
+    .attr("text-anchor", "middle")  // Center the text horizontally
+    .attr("dominant-baseline", "central");  // Center the text vertically
+
+
+            
+            
+    
+            svg.call(zoom);
+            const handleResize = () => {
+                if (svgRef.current) {
+                    setSvgDimensions({
+                        width: svgRef.current.clientWidth,
+                        height: svgRef.current.clientHeight
+                    });
+                }
+            };
+            
+            window.addEventListener('resize', handleResize);
+        
+            // Remember to remove the event listener when the component is unmounted
+            return () => {
+                window.removeEventListener('resize', handleResize);
+            };
+        }, [messages, svgRef.current, setCurrentMessage, increment, setInc]);
+
+        const handleFocusClick = () => {
+            const svg = d3.select(svgRef.current);
+        
+            const xMin = d3.min(computedNodes, d => d.x);
+            const xMax = d3.max(computedNodes, d => d.x);
+            const yMin = d3.min(computedNodes, d => d.y);
+            const yMax = d3.max(computedNodes, d => d.y);
+        
+            // console.log('xMin:', xMin);
+            // console.log('xMax:', xMax);
+            // console.log('yMin:', yMin);
+            // console.log('yMax:', yMax);
+        
+            const dx = xMax - xMin + 0.001;
+            const dy = yMax - yMin + 0.001;
+        
+            // console.log('dx:', dx);
+            // console.log('dy:', dy);
+        
+            const xCenter = (xMax + xMin) / 2;
+            const yCenter = (yMax + yMin) / 2;
+        
+            // console.log('xCenter:', xCenter);
+            // console.log('yCenter:', yCenter);
+        
+            const dxRatio = dx / (svgDimensions.width || 1);
+            const dyRatio = dy / (svgDimensions.height || 1);
+            const maxRatio = Math.max(dxRatio, dyRatio);
+            const tentativeScale = 0.9 / maxRatio;
+            const scale = Math.min(tentativeScale, 3);
+        
+            // console.log('dxRatio:', dxRatio);
+            // console.log('dyRatio:', dyRatio);
+            // console.log('maxRatio:', maxRatio);
+            // console.log('tentativeScale:', tentativeScale);
+            // console.log('scale:', scale);
+        
+            const translateX = (svgDimensions.width || svgRef.current.offsetWidth || 1) / 2 - scale * xCenter;
+            const translateY = (svgDimensions.height || svgRef.current.offsetHeight || 1) / 2 - scale * yCenter;
+        
+            // console.log('translateX:', translateX);
+            // console.log('translateY:', translateY);
+        
+            const translate = [translateX, translateY];
+        
+            svg.transition()
+                .duration(750)
+                .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
+        };
+
+        useEffect(() => {
+            let timer; // Declare timer outside of the if block
+        
+            if (increment < 3) {
+                timer = setTimeout(() => {
+                    handleFocusClick();
+                }, 2000); // 3s delay
+            } else {
+                handleFocusClick();
+            }
+        
+            return () => {
+                if (timer) { // Check if timer is set before clearing
+                    clearTimeout(timer); 
+                }
+            }; // Clear the timeout if the component is unmounted before the timer fires
+        }, [increment, computedNodes]);
+
+        
+
+        useEffect(() => {
+            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('mousedown', handleMouseDown);
+        
+            // Clean up the listeners when the component is unmounted
+            return () => {
+                window.removeEventListener('keydown', handleKeyDown);
+                window.removeEventListener('mousedown', handleMouseDown);
+            };
+        }, []);
+        
+        
+        
+        
+        
+        
+
+        return (
+            <div ref={ref} tabIndex={0} style={{ outline: "none", width: '100%', height: '100%' }}>
+                <button 
+                    onClick={handleFocusClick} 
+                    style={buttonStyles}
+                    onMouseOver={(e) => {
+                        e.currentTarget.style.background = "#0056b3";
+                    }}
+                    onMouseOut={(e) => {
+                        e.currentTarget.style.background = "#007BFF";
+                    }}
+                >
+                    Focus
+                </button>
+                <svg ref={svgRef} style={svgStyles}>
+                    <defs>
+                        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feMorphology operator="dilate" radius="2" in="SourceAlpha" result="thicken" />
+                            <feGaussianBlur in="thicken" stdDeviation="3" result="blurred" />
+                            <feFlood flood-color="green" result="greenColor" />
+                            <feComposite in="greenColor" in2="blurred" operator="in" />
+                            <feComposite in="SourceGraphic" />
+                        </filter>
+                    </defs>
+                    <g ref={gRef}></g>
+                </svg>
+            </div>
+        );
+    }    
+
 const Chatbot = () => {
     const textareaRef = useRef(null);
+    const [messageCount, setMessageCount] = useState(0);
+    const incrementMessageCount = () => {
+        setMessageCount(prevCount => prevCount + 1);
+    };
 
 
     const [currentMessage, setCurrentMessage] = useState(null);
@@ -109,55 +393,106 @@ let currentCol = 0;
 let maxColInLastRow = 0;
 const processedNodes = [];
 
+const setAllNodesContext = (node, value) => {
+    node.inContext = value;
+    node.children.forEach(child => setAllNodesContext(child, value));
+};
+
+const setContextDefault = (root, current) => {
+    // Set inContext to false for every node in the tree
+    setAllNodesContext(root, false);
+
+    // Set inContext to true from current node up to the root
+    let tempNode = current;
+    while (tempNode && tempNode.parent) { // Check for tempNode.parent ensures we stop before the root
+        // console.log(tempNode);
+        tempNode.inContext = true;
+        tempNode = tempNode.parent;
+        tempNode.inContext = true;
+    }
+};
+
+
+
 const isColumnOccupied = (col) => {
     return processedNodes.some(node => node.col === col);
 };
 const findNextMessageToRight = (currentMessage) => {
-    let nextMessage = null;
-    processedNodes.forEach(node => {
-        if (node.row === currentMessage.row && node.col > currentMessage.col) {
-            if (!nextMessage || node.col < nextMessage.col) {
-                nextMessage = node;
+    let tempNode = currentMessage;
+    let stepsUp = 0;
+    // Traverse up
+    while (tempNode.parent) {
+        const siblings = tempNode.parent.children;
+        const currentIndex = siblings.indexOf(tempNode);
+        if (currentIndex < siblings.length - 1) {
+            tempNode = siblings[currentIndex + 1];
+            // Traverse down
+            while (stepsUp > 0 && tempNode.children.length > 0) {
+                tempNode = tempNode.children[tempNode.children.length - 1];
+                stepsUp--;
             }
+            return tempNode;
         }
-    });
-    return nextMessage;
+        tempNode = tempNode.parent;
+        stepsUp++;
+    }
+    return null;
 };
 
 const findNextMessageToLeft = (currentMessage) => {
-    let nextMessage = null;
-    processedNodes.forEach(node => {
-        if (node.row === currentMessage.row && node.col < currentMessage.col) {
-            if (!nextMessage || node.col > nextMessage.col) {
-                nextMessage = node;
+    let tempNode = currentMessage;
+    let stepsUp = 0;
+    // Traverse up
+    while (tempNode.parent) {
+        const siblings = tempNode.parent.children;
+        const currentIndex = siblings.indexOf(tempNode);
+        if (currentIndex > 0) {
+            tempNode = siblings[currentIndex - 1];
+            // Traverse down
+            while (stepsUp > 0 && tempNode.children.length > 0) {
+                tempNode = tempNode.children[tempNode.children.length - 1];
+                stepsUp--;
             }
+            return tempNode;
         }
-    });
-    return nextMessage;
+        tempNode = tempNode.parent;
+        stepsUp++;
+    }
+    return null;
 };
+
+
+
 
 const findNextMessageAbove = (currentMessage) => {
-    let nextMessage = null;
-    processedNodes.forEach(node => {
-        if (node.col === currentMessage.col && node.row < currentMessage.row) {
-            if (!nextMessage || node.row > nextMessage.row) {
-                nextMessage = node;
-            }
-        }
-    });
-    return nextMessage;
+    return currentMessage.parent || null;
 };
 
+
 const findNextMessageBelow = (currentMessage) => {
-    let nextMessage = null;
-    processedNodes.forEach(node => {
-        if (node.col === currentMessage.col && node.row > currentMessage.row) {
-            if (!nextMessage || node.row < nextMessage.row) {
-                nextMessage = node;
-            }
+    return currentMessage.children && currentMessage.children.length > 0
+        ? currentMessage.children[0]
+        : null;
+};
+
+const findParent = (currentMessage) => {
+    let tempNode = currentMessage;
+    while (tempNode.parent) {
+        const siblings = tempNode.parent.children;
+        if (siblings.length > 1) {
+            return tempNode.parent;
         }
-    });
-    return nextMessage;
+        tempNode = tempNode.parent;
+    }
+    return null;
+};
+
+const findLeaf = (currentMessage) => {
+    let tempNode = currentMessage;
+    while (tempNode.children.length > 0) {
+        tempNode = tempNode.children[0]; // Always take the first child
+    }
+    return tempNode;
 };
 
 
@@ -171,6 +506,10 @@ useEffect(() => {
             nextMessage = findNextMessageToRight(currentMessage);
         } else if (event.key === 'ArrowLeft') {
             nextMessage = findNextMessageToLeft(currentMessage);
+        } else if (event.key === 'ArrowUp' && event.ctrlKey) {
+            nextMessage = findParent(currentMessage);
+        } else if (event.key === 'ArrowDown' && event.ctrlKey) {
+            nextMessage = findLeaf(currentMessage);
         } else if (event.key === 'ArrowUp') {
             nextMessage = findNextMessageAbove(currentMessage);
         } else if (event.key === 'ArrowDown') {
@@ -185,6 +524,8 @@ useEffect(() => {
     window.addEventListener('keydown', handleArrowKeys);
     return () => window.removeEventListener('keydown', handleArrowKeys);
 }, [currentMessage]);
+
+
 
 
 const assignRowAndCol = (node, isChild = false) => {
@@ -293,7 +634,9 @@ const traverseAndCalculateTotalHeight = (node, path = '') => {
 const sendMessage = async () => {
     
     
-    const userMessage = MessageNode(currentMessage, input, 'user');
+    const userMessage = MessageNode(currentMessage, incrementMessageCount, input, 'user');
+
+    
     
     
     
@@ -316,12 +659,15 @@ const sendMessage = async () => {
     const botResponse = await getBotReply(input, currentMessage, messages);
 
     console.log(botResponse);
-    const botReply = MessageNode(userMessage, botResponse, 'bot');
+    const botReply = MessageNode(userMessage, incrementMessageCount, botResponse, 'bot');
     userMessage.children = [botReply];
 
     // Set the user's message as the current message
 
     setCurrentMessage(botReply);
+
+    setContextDefault(messages, botReply);
+    
 
 };
 
@@ -341,80 +687,11 @@ const handleKeyPress = (event) => {
 };
 
 
-  const BUFFER = 1040;  // 2 pixels buffer
 
-  const setScrollToMessage = (nodeId) => {
-    let cumulativeHeight = 0;
-    let foundMessage = null;
-
-    const traverseAndCalculateHeight = (node, path = '') => {
-        if (!node || foundMessage) return;
-    
-        if (path === nodeId) {
-            foundMessage = node;
-        }
-    
-        if (node.sender !== 'root') {
-            const depth = path.split('-').length - 1; // Convert path to depth for indexing messageRefs
-            if (messageRefs.current[depth]) {
-                cumulativeHeight += messageRefs.current[depth].offsetHeight + 0.5;
-            }
-        }
-    
-        if (node.children) {
-            node.children.forEach((child, index) => {
-                traverseAndCalculateHeight(child, path ? `${path}-${index}` : String(index));
-            });
-        }
-    };
-
-    traverseAndCalculateHeight(messages);
-
-    if (foundMessage && foundMessage !== currentMessage) {
-        setCurrentMessage(foundMessage);
-    }
-
-    const newY = -cumulativeHeight + BUFFER;
-    // setTranslateY(newY);
-};
+// Style object for the button
 
 
 
-
-
-const printMessagesTree = (node, depth = 0) => {
-    if (!node) return;
-
-    // Get the first word from the message (or the entire message if it's a single word)
-    const firstWord = node.message.split(' ')[0];
-
-    console.log(' '.repeat(depth * 4) + (node.sender !== 'root' ? `${node.sender}: ${firstWord}` : 'root'));
-
-    if (node.children) {
-        node.children.forEach(child => printMessagesTree(child, depth + 1));
-    }
-};
-
-
-
-
-
-const userMessageStyle = {
-    maxWidth: '80%',
-    padding: '10px',
-    border: '1px solid #ccc',
-    borderRadius: '10px',
-    backgroundColor: '#e6f7ff',
-    wordWrap: 'break-word',
-    whiteSpace: 'pre-wrap',
-    textAlign: 'left'  // Ensure text alignment to the left
-};
-
-const botMessageStyle = {
-    ...userMessageStyle,
-    backgroundColor: '#f6f6f6',
-    textAlign: 'left'
-};
 
 
 let maxCol = 0;
@@ -540,64 +817,96 @@ const renderGridMessages = () => {
 
 
   
-
 return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100vw', height: '100vh' }}>
-        
-        <div style={{ display: 'flex', flexDirection: 'row', width: '80vw', height: '90vh' }}>
-            
-            <div style={{ flex: 4, marginRight: '2%', borderRight: '1px solid #ccc', paddingRight: '1%', overflowY: 'auto', paddingBottom: '5%' }}>
-                
-                <div ref={messagesRef}>
-                    <List>
-                        {renderGridMessages()}
-                    </List>
-                </div>
+    <>
+        <style>
+            {`
+                .dark-scrollbar::-webkit-scrollbar {
+                    width: 10px;
+                    height: 10px;
+                }
 
-                <div style={{ 
-                    position: 'fixed', 
-                    bottom: '5%', 
-                    left: '10%', 
-                    width: '80vw', 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'flex-end' 
-                }}>
-                    <TextareaAutosize
-                    ref={textareaRef}
-                    onBlur={() => {
-                        setTimeout(() => {
-                            textareaRef.current.focus();
-                        }, 0);
-                    }}
-                        minRows={1}
-                        maxRows={10}
-                        style={{
-                            flex: 1, 
-                            padding: '0.5rem', 
-                            resize: 'none', 
-                            outline: 'none', 
-                            border: '1px solid #ccc', 
-                            borderRadius: '5px',
-                            zIndex: 1000 
-                        }}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                    />
+                .dark-scrollbar::-webkit-scrollbar-thumb {
+                    background: #888;
+                    border-radius: 5px;
+                }
 
-                    <Button variant="contained" color="primary" onClick={sendMessage} style={{ marginLeft: '1%' }}>Send</Button>
+                .dark-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #555;
+                }
+
+                .dark-scrollbar::-webkit-scrollbar-track {
+                    background: #333;
+                    border-radius: 5px;
+                }
+
+                .dark-scrollbar {
+                    scrollbar-color: #888 #333;
+                    scrollbar-width: thin;
+                }
+            `}
+        </style>
+
+        <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: '#282c34',
+            color: '#fff'
+        }}>
+
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100vw', height: '100vh' }}>
+
+                <div style={{ display: 'flex', flexDirection: 'row', width: '75vw', height: '85.5vh' }}>
+
+                    <div className="dark-scrollbar" style={{ flex: 3, marginRight: '2%', paddingRight: '1%', overflowY: 'auto', paddingBottom: '3%'}}>
+
+                        <div ref={messagesRef}>
+                            <List>
+                                {renderGridMessages()}
+                            </List>
+                        </div>
+
+                        <div style={{
+                            position: 'fixed',
+                            bottom: '5%',
+                            left: '10%',
+                            width: '80vw',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-end'
+                        }}>
+                            <TextareaAutosize
+                                ref={textareaRef}
+                                onBlur={() => {
+                                    setTimeout(() => {
+                                        textareaRef.current.focus();
+                                    }, 0);
+                                }}
+                                minRows={1}
+                                maxRows={10}
+                                style={textareaStyles}
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                            />
+
+                            <Button variant="contained" color="primary" onClick={sendMessage} style={buttonStyles}>Send</Button>
+                        </div>
+                    </div>
+
+                    <div style = {{flex: 2}}>
+                        <MiniView messages={messages} setCurrentMessage={setCurrentMessage} increment={messageCount} current={currentMessage} setInc  = {incrementMessageCount}/>
+                    </div>
+
                 </div>
             </div>
-            
-            <div style={{ flex: 1, padding: '1%', overflowY: 'auto' }}>
-                <Button variant="outlined" onClick={() => printMessagesTree(messages)} style={{ width: '100%', marginBottom: '1%' }}>Print Tree</Button>
-                <MiniView messages={messages} setScrollToMessage={setScrollToMessage} />
-            </div>
-            
         </div>
-    </div>
+    </>
 );
+
 };
 
 export default Chatbot;
