@@ -1,11 +1,28 @@
+The way i made the spacial chat works fine, but is kinda trash(never really coded much in javascript before, so that was more me learning), so i'll probably just re-do that whole part of it, but the miniview, and backend all work great.  gonna add pdf uploading and message selecting context determination, custom prompt management, and probably a couple other things idk.  Code is formatted slightly better and commented now.
+
 # Chatbot UI
+![Screenshot](screen.PNG)
 
-## Getting Started
+## How to Run
 
-To run the project, execute the following:
-```
-npm start
-```
+1. **Clone the Repository:**
+    ```bash
+    git clone https://github.com/austindaniel100/UIproj.git
+    cd UIproj
+    ```
+
+2. **Install Dependencies:**
+    ```bash
+    npm install
+    ```
+
+3. **Start the Application:**
+    ```bash
+    npm start
+    ```
+
+The application will start running on `http://localhost:3000`, or another available port if `3000` is already in use.
+
 
 ## Interacting with the Bot
 
@@ -40,4 +57,8 @@ To focus on the mini-view:
 
 To branch the tree of messages, select a current message that isn't already a leaf and send a new message.
 
-![Screenshot](screen.PNG)
+### TextAreaShortcuts
+
+- **Enter**: To send a message and get a response.
+- **Shift + Enter**: To add a newline in your message.
+- **Alt + Enter**: To add a message to the tree without a bot response.

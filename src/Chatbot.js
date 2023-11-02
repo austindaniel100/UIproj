@@ -3,7 +3,6 @@ import { Button, List, ListItem, TextareaAutosize } from "@mui/material";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { solarizedlight } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { TreeView, TreeItem } from "@mui/lab";
 import getBotReply from "./botReplyHandler";
 
 import * as d3 from "d3";
@@ -289,7 +288,7 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
       window.removeEventListener("resize", handleResize);
     };
   }, [messages, svgRef.current, setCurrentMessage, increment, setInc]);
-  
+
   /**
  * handleFocusClick:
  * Adjusts the SVG viewport to focus on `computedNodes`.
@@ -452,6 +451,7 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
  * - `assignRowAndCol`: Assigns a row and column to each message node based on the tree structure.
  * - `countTotalMessages`: Counts the total number of messages in the tree.
  * - `sendMessage`: Sends a new message and updates the tree structure.
+ * - `sendMessageOnly`: Sends a new message and updates the tree structure without a bot response.
  * - `renderGridMessages`: Renders the messages in a grid layout with the center column in focus.
  * 
  * Effects:
@@ -707,6 +707,29 @@ const Chatbot = () => {
     return height;
   };
 
+  const sendMessageOnly = async () => {
+    const userMessage = MessageNode(currentMessage, incrementMessageCount, input, "user");
+    console.log("HISHDIFHDSIHF");
+    // If there's a current message, add the new user message as its child.
+    if (currentMessage) {
+        if (!currentMessage.children) {
+          currentMessage.children = [];
+        }
+        currentMessage.children.push(userMessage);
+      } else {
+        // If no current message, add directly to the root's children.
+        setMessages((prevMessages) => ({
+          ...prevMessages,
+          children: [...prevMessages.children, userMessage],
+        }));
+      }
+      setCurrentMessage(userMessage);
+      setInput("");
+
+      setContextDefault(messages, userMessage);
+
+  }
+
   const sendMessage = async () => {
     const userMessage = MessageNode(
       currentMessage,
@@ -749,16 +772,21 @@ const Chatbot = () => {
     setContextDefault(messages, botReply);
   };
 
-  const handleKeyPress = (event) => {
-    if (event.key === "Enter") {
-      if (event.shiftKey) {
-        // Allow newline when Shift + Enter is pressed
-      } else if (input.trim() !== "") {
-        event.preventDefault();
-        sendMessage(); // Call the updated sendMessage function
-      }
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" && event.altKey) {
+      event.preventDefault();  // Prevent the default action (newline) for Enter key
+      sendMessageOnly();
+    } else if (event.key === "Enter" && event.shiftKey) {
+      // Allow newline when Shift + Enter is pressed
+    } else if (event.key === "Enter" && input.trim() !== "") {
+      event.preventDefault();  // Prevent the default action (newline) for Enter key
+      sendMessage();  // Call the updated sendMessage function
     }
   };
+  
+
+
+
 
   // Style object for the button
 
@@ -984,7 +1012,7 @@ const Chatbot = () => {
                   style={textareaStyles}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyDown}
                 />
 
                 <Button
