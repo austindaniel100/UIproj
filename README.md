@@ -1,4 +1,4 @@
-# Project Title (replace with your project's title)
+# Chatbot UI
 
 ## Getting Started
 
