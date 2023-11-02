@@ -1,4 +1,5 @@
 # Chatbot UI
+![Screenshot](screen.PNG)
 
 ## How to Run
 
@@ -54,4 +55,4 @@ To focus on the mini-view:
 
 To branch the tree of messages, select a current message that isn't already a leaf and send a new message.
 
-![Screenshot](screen.PNG)
+
