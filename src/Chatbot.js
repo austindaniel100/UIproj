@@ -773,7 +773,7 @@ const Chatbot = () => {
   };
 
   const handleKeyDown = (event) => {
-    if (event.key === "Enter" && event.altKey) {
+    if (event.key === "Enter" && event.ctrlKey) {
       event.preventDefault();  // Prevent the default action (newline) for Enter key
       sendMessageOnly();
     } else if (event.key === "Enter" && event.shiftKey) {

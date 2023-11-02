@@ -61,4 +61,4 @@ To branch the tree of messages, select a current message that isn't already a le
 
 - **Enter**: To send a message and get a response.
 - **Shift + Enter**: To add a newline in your message.
-- **Alt + Enter**: To add a message to the tree without a bot response.
+- **Ctrl + Enter**: To add a message to the tree without a bot response.
