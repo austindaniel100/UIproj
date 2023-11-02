@@ -1,4 +1,4 @@
-The way i made the spacial chat works fine, but is kinda trash, so i'll probably just re-do that whole part of it, but the miniview, and backend all work great
+The way i made the spacial chat works fine, but is kinda trash, so i'll probably just re-do that whole part of it, but the miniview, and backend all work great.  gonna add pdf uploading and message selecting context determination, custom prompt management, and probably a couple other things idk.
 
 # Chatbot UI
 ![Screenshot](screen.PNG)
