@@ -1,7 +1,7 @@
 The way i made the spacial chat works fine, but is kinda trash(never really coded much in javascript before, so that was more me learning), so i'll probably just re-do that whole part of it, but the miniview, and backend all work great.  gonna add pdf uploading and message selecting context determination, custom prompt management, and probably a couple other things idk.  Code is formatted slightly better and commented now.
 
 # Chatbot UI
-![Screenshot](screen.PNG)
+![Screenshot](screen1.PNG)
 
 ## How to Run
 
