@@ -2,24 +2,65 @@
 const YOUR_GENERATED_SECRET = process.env.REACT_APP_YOUR_GENERATED_SECRET;
 const useApi = false;
 
-const getConversationHistory = (currentMessage, messagesTree) => {
-    let conversation = "";
+const generateConversationLists = (currentMessage, messagesTree) => {
+    let conversationList = [];
+    let otherMessagesList = [];
+    const visitedMessages = new Set();
+  
+    // Helper function to check if a node is an ancestor of the current message
 
-    // If there's a current message, trace back through its ancestors.
-    while (currentMessage) {
-        console.log("AHDSFAHDFHASDHADHDHASHDASHD current: " + currentMessage.message);
-        // console.log("sdafklhdsaklfhsdklfhslkdfh parent: " + currentMessage.parent.message);
-        conversation = currentMessage.sender + ": " +  currentMessage.message + "\n" + conversation;
-        currentMessage = currentMessage.parent;
+  
+    // Trace back through the current message's ancestors
+    let ancestorMessage = currentMessage;
+    while (ancestorMessage) {
+      if (ancestorMessage.inContext || ancestorMessage.id === currentMessage.id) {
+        conversationList.unshift(ancestorMessage);
+      }
+      ancestorMessage = ancestorMessage.parent;
     }
+  
+    // Helper function to traverse the entire tree
+    const traverseTree = (node) => {
+      if (!node || visitedMessages.has(node)) return;
+      visitedMessages.add(node);
+  
+      // Check if the node is not an ancestor of the current message and inContext is true
+      if (node.inContext) {
+        otherMessagesList.push(node);
+      }
+  
+      // Traverse children
+      if (node.children) {
+        node.children.forEach(child => traverseTree(child));
+      }
+    };
+  
+    // Traverse the entire tree to find other in-context messages
+    traverseTree(messagesTree);
+    otherMessagesList = otherMessagesList.filter(msg => !conversationList.includes(msg));
 
-    // Add the root message if it exists.
-    if (messagesTree.message) {
-        conversation = messagesTree.message + "\n" + conversation;
-    }
+    // console.log("************************************************************************************************");
+    // console.log("conversationList: ", conversationList);
+    // console.log("otherMessagesList: ", otherMessagesList);
+  
+    return { conversationList, otherMessagesList };
+  };
+  
+  const getConversationHistory = (currentMessage, messagesTree) => {
+    const { conversationList, otherMessagesList } = generateConversationLists(currentMessage, messagesTree);
+  
+    const conversationString = listToString(conversationList);
+    const otherMessagesString = listToString(otherMessagesList);
+  
+    return conversationString + "\n\notherMessages:\n" + otherMessagesString;
+  };
+  
+  // Function to convert a list of messages to a string
+  const listToString = (messageList) => {
+    return messageList.map(message => `${message.sender}: ${message.message}`).join('\n').trim();
+  };
+  
 
-    return conversation.trim();
-};
 
 
 const getBotReply = async (input, currentMessage, messagesTree) => {
@@ -76,7 +117,7 @@ const getBotReply = async (input, currentMessage, messagesTree) => {
         return fullResponse; // This will return the full concatenated response from the stream.
     } catch (error) {
         console.error("failed to fetch bot reply: ", error);
-        return "API call failed or is not turned on.  Default bot response.\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```import stuff\n\ndef code():\n\treturn 1";
+        return "API call failed or is not turned on.  Default bot response.\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1";
     }
 };
 

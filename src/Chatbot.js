@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Button, List, ListItem, TextareaAutosize } from "@mui/material";
-import ReactMarkdown from "react-markdown";
+import { Button, TextareaAutosize } from "@mui/material";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { solarizedlight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import getBotReply from "./botReplyHandler";
+import ChatComponent from "./ChatComponent";
 
 import * as d3 from "d3";
 
@@ -95,6 +95,7 @@ const buttonStyles = {
   textDecoration: "none",
   display: "inline-block",
   margin: "10px",
+  textTransform: 'none'
 };
 
 /**
@@ -174,17 +175,7 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
     }
     return null;
   };
-  const handleKeyDown = (event) => {
-    if (event.ctrlKey && event.key === "q") {
-      handleFocusClick();
-    }
-  };
-  const handleMouseDown = (event) => {
-    // Check if the middle mouse button is clicked (button value 1 represents the middle button)
-    if (event.button === 1) {
-      handleFocusClick();
-    }
-  };
+  
 
   const zoom = d3
     .zoom()
@@ -238,6 +229,8 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
         (d) => `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`
       );
 
+      
+
     g.selectAll(".node")
       .data(nodes)
       .join("rect")
@@ -252,12 +245,6 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
       .attr("x", (d) => d.x - 50)
       .attr("y", (d) => d.y - 20)
       .attr("filter", (d) => (d.data.inContext ? "url(#glow)" : "none")) // Apply the glow filter for nodes in context
-      .on("click", (event, node) => {
-        const originalNode = findNodeById(messages, node.data.id);
-        if (originalNode) {
-          setCurrentMessage(originalNode);
-        }
-      });
     console.log(current);
 
     g.selectAll(".label")
@@ -270,6 +257,39 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
       .attr("fill", "#d1d1d1") // Set text color to a softer light gray
       .attr("text-anchor", "middle") // Center the text horizontally
       .attr("dominant-baseline", "central"); // Center the text vertically
+
+    // ... after drawing nodes and text ...
+
+g.selectAll(".click-capture")
+.data(nodes)
+.join("rect")
+.attr("class", "click-capture")
+.attr("width", 100) // Same width as your nodes
+.attr("height", 50) // Same height as your nodes
+.attr("x", (d) => d.x - 50) // Same x position as your nodes
+.attr("y", (d) => d.y - 20) // Same y position as your nodes
+.style("fill-opacity", 0) // Make them invisible
+.on("click", (event, node) => {
+  if (event.ctrlKey) {
+    // Ctrl-click functionality
+    node.data.inContext = !node.data.inContext;
+    g.selectAll(".node")
+      .filter(d => d.data.id === node.data.id) // Filter to get the corresponding node
+      .attr("filter", node.data.inContext ? "url(#glow)" : "none"); // Update the glow 
+    setInc();
+
+    // Update the appearance or state as needed
+  } else {
+    // Normal click functionality
+    const originalNode = findNodeById(messages, node.data.id);
+    if (originalNode) {
+      setCurrentMessage(originalNode);
+    }
+  }
+});
+
+
+    
 
     svg.call(zoom);
     const handleResize = () => {
@@ -354,6 +374,7 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
       );
   };
 
+
   useEffect(() => {
     let timer; // Declare timer outside of the if block
 
@@ -373,16 +394,6 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
     }; // Clear the timeout if the component is unmounted before the timer fires
   }, [increment, computedNodes]);
 
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("mousedown", handleMouseDown);
-
-    // Clean up the listeners when the component is unmounted
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("mousedown", handleMouseDown);
-    };
-  }, []);
 
   return (
     <div
@@ -390,18 +401,20 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
       tabIndex={0}
       style={{ outline: "none", width: "100%", height: "100%" }}
     >
-      <button
+      <Button
+        variant="contained"
+        color="primary"
         onClick={handleFocusClick}
         style={buttonStyles}
-        onMouseOver={(e) => {
-          e.currentTarget.style.background = "#0056b3";
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.background = "#007BFF";
+        sx={{
+          ...buttonStyles,
+          '&&:hover': {
+            backgroundColor: '#FFFFFF', // Adjust the color as needed
+          },
         }}
       >
         Focus
-      </button>
+      </Button>
       <svg ref={svgRef} style={svgStyles}>
         <defs>
           <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -464,12 +477,18 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
 
 const Chatbot = () => {
   const textareaRef = useRef(null);
+
   const [messageCount, setMessageCount] = useState(0);
   const incrementMessageCount = () => {
     setMessageCount((prevCount) => prevCount + 1);
   };
 
   const [currentMessage, setCurrentMessage] = useState(null);
+
+  useEffect(() => {
+    // Focus the textarea whenever currentMessage changes
+    textareaRef.current.focus();
+  }, [currentMessage]); // Dependency array includes currentMessage
 
   const [input, setInput] = useState("");
 
@@ -495,16 +514,18 @@ const Chatbot = () => {
 
   const setContextDefault = (root, current) => {
     // Set inContext to false for every node in the tree
-    setAllNodesContext(root, false);
+    if (false) {
+      setAllNodesContext(root, false);
 
-    // Set inContext to true from current node up to the root
-    let tempNode = current;
-    while (tempNode && tempNode.parent) {
-      // Check for tempNode.parent ensures we stop before the root
-      // console.log(tempNode);
-      tempNode.inContext = true;
-      tempNode = tempNode.parent;
-      tempNode.inContext = true;
+      // Set inContext to true from current node up to the root
+      let tempNode = current;
+      while (tempNode && tempNode.parent) {
+        // Check for tempNode.parent ensures we stop before the root
+        // console.log(tempNode);
+        tempNode.inContext = true;
+        tempNode = tempNode.parent;
+        tempNode.inContext = true;
+      }
     }
   };
 
@@ -708,6 +729,7 @@ const Chatbot = () => {
   };
 
   const sendMessageOnly = async () => {
+    if (input === "" || input.trim() === "") return;
     const userMessage = MessageNode(currentMessage, incrementMessageCount, input, "user");
     console.log("HISHDIFHDSIHF");
     // If there's a current message, add the new user message as its child.
@@ -731,6 +753,7 @@ const Chatbot = () => {
   }
 
   const sendMessage = async () => {
+    if (input === "" || input.trim() === "") return;
     const userMessage = MessageNode(
       currentMessage,
       incrementMessageCount,
@@ -782,139 +805,6 @@ const Chatbot = () => {
       event.preventDefault();  // Prevent the default action (newline) for Enter key
       sendMessage();  // Call the updated sendMessage function
     }
-  };
-  
-
-
-
-
-  // Style object for the button
-
-  let maxCol = 0;
-
-  const determineMaxColumns = (node) => {
-    if (!node) return;
-
-    if (node.col > maxCol) {
-      maxCol = node.col;
-    }
-
-    if (node.children) {
-      node.children.forEach((child) => determineMaxColumns(child));
-    }
-  };
-
-  determineMaxColumns(messages);
-
-  const messageContainerStyle = {
-    flex: 1,
-    // border: '1px solid #ccc',
-    padding: "10px",
-    position: "relative", // To allow absolute positioning for the pseudo-elements
-  };
-
-  const LINE_HEIGHT = 18.25; // 20 pixels for each line is an example, adjust as needed
-  const LINE_HEIGHT_DOUBLE = 40;
-  const ADDITION = 60;
-  const AVERAGE_LINES_PER_MESSAGE = 3; // This is an example, adjust based on your data
-  const DEFAULT_MESSAGE_HEIGHT =
-    LINE_HEIGHT * AVERAGE_LINES_PER_MESSAGE + ADDITION;
-
-  const renderGridMessages = () => {
-    const grid = [];
-
-    const populateGrid = (node) => {
-      if (!node) return;
-
-      if (!grid[node.row]) grid[node.row] = [];
-      grid[node.row][node.col] = node;
-
-      if (node.children) {
-        node.children.forEach((child) => populateGrid(child));
-      }
-    };
-
-    populateGrid(messages);
-
-    let currentColIndex = currentMessage ? currentMessage.col : 0;
-
-    // Determine the height of each cell in the center column
-    const centerHeights = grid.map((row) => {
-      const centerCell = row[currentColIndex];
-      if (centerCell) {
-        const message = centerCell.message;
-        const doubleLineBreaks = (message.match(/\n\n/g) || []).length;
-        const totalLines = message.split("\n").length + doubleLineBreaks;
-        const singles = totalLines - doubleLineBreaks - doubleLineBreaks;
-
-        return (
-          singles * LINE_HEIGHT +
-          doubleLineBreaks * LINE_HEIGHT_DOUBLE +
-          ADDITION
-        );
-      } else {
-        return DEFAULT_MESSAGE_HEIGHT;
-      }
-    });
-
-    const leftColumnIndex = currentColIndex - 1;
-    const rightColumnIndex = currentColIndex + 1;
-
-    return (
-      <div style={{ display: "flex", overflowX: "hidden" }}>
-        {[leftColumnIndex, currentColIndex, rightColumnIndex].map(
-          (colIndex) => (
-            <div
-              key={colIndex}
-              style={{
-                flex: colIndex === currentColIndex ? 1 : 0.3,
-                opacity: colIndex === currentColIndex ? 1 : 0.3,
-                transition: "opacity 0.3s",
-                overflow: "hidden",
-                maskImage:
-                  colIndex !== currentColIndex
-                    ? "linear-gradient(to right, transparent 5%, black 15%, black 85%, transparent 95%)"
-                    : "none",
-              }}
-            >
-              {grid.map((row, rowIndex) => (
-                <div key={rowIndex} style={{ ...messageContainerStyle }}>
-                  {row[colIndex] ? (
-                    <div
-                      onClick={() => setCurrentMessage(row[colIndex])}
-                      style={{
-                        ...(row[colIndex].sender === "user"
-                          ? userMessageStyle
-                          : botMessageStyle),
-                        border:
-                          row[colIndex] === currentMessage
-                            ? "3px solid black"
-                            : "none",
-                      }}
-                    >
-                      {/* Display message content for center column and "User" or "Bot" for left and right columns */}
-                      {colIndex === currentColIndex ? (
-                        <ReactMarkdown
-                          components={components}
-                          children={row[colIndex].message}
-                        />
-                      ) : (
-                        <span>
-                          {row[colIndex].sender.charAt(0).toUpperCase() +
-                            row[colIndex].sender.slice(1)}
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <div style={{ height: "100%" }}></div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )
-        )}
-      </div>
-    );
   };
 
   return (
@@ -985,9 +875,7 @@ const Chatbot = () => {
                 paddingBottom: "3%",
               }}
             >
-              <div ref={messagesRef}>
-                <List>{renderGridMessages()}</List>
-              </div>
+              <ChatComponent currentMessage={currentMessage} increment = {incrementMessageCount} />
 
               <div
                 style={{
@@ -1002,11 +890,6 @@ const Chatbot = () => {
               >
                 <TextareaAutosize
                   ref={textareaRef}
-                  onBlur={() => {
-                    setTimeout(() => {
-                      textareaRef.current.focus();
-                    }, 0);
-                  }}
                   minRows={1}
                   maxRows={10}
                   style={textareaStyles}
