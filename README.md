@@ -110,4 +110,4 @@ The application now includes a sophisticated PDF interaction feature, enabling u
 
 
 # PDF Page Selector
-![PDF Page Selector Screenshot](screen2.PNG)
+![PDF Page Selector Screenshot](screenpopup.PNG)

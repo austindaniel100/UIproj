@@ -146,7 +146,14 @@ const largeViewContainerStyle = {
     return (
         <div style={componentContainerStyle}>
             <div style={fileInputContainerStyle}>
-                <input type="file" onChange={onFileChange} multiple style={fileInputStyle} />
+            <input 
+    type="file" 
+    onChange={onFileChange} 
+    multiple 
+    style={fileInputStyle} 
+    accept="application/pdf" // Restricts file input to PDF files
+/>
+
             </div>
             <div>
                 {pdfs.map((pdf, index) => (
