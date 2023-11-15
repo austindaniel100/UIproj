@@ -100,3 +100,6 @@ The application includes a sophisticated PDF interaction feature, allowing users
 - **Dynamic Interaction:**
   - Interact dynamically with the chatbot using the content of your selected PDF pages.
   - This feature makes the chatbot an effective tool for handling inquiries or discussions based on document content.
+
+  # PDF page selector
+![Screenshot](screen2.PNG)
