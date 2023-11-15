@@ -4,6 +4,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { solarizedlight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import getBotReply from "./botReplyHandler";
 import ChatComponent from "./ChatComponent";
+import PdfViewerComponent from "./PdfComponent";
 
 import * as d3 from "d3";
 
@@ -476,6 +477,23 @@ g.selectAll(".click-capture")
  */
 
 const Chatbot = () => {
+
+  const [pdfs, setPdfs] = useState([]);
+
+  const onFileChange = (event) => {
+    const newPdfs = Array.from(event.target.files).map((file) => {
+      const url = URL.createObjectURL(file); // Create a URL for the file
+      return {
+        file: url,
+        name: file.name,
+        numPages: null, // Will be set when the document is loaded
+        selectedPages: new Set(), // No pages selected initially
+      };
+    });
+
+    // Update the state with the new PDFs
+    setPdfs((prevPdfs) => [...prevPdfs, ...newPdfs]);
+  };
   const textareaRef = useRef(null);
 
   const [messageCount, setMessageCount] = useState(0);
@@ -514,7 +532,7 @@ const Chatbot = () => {
 
   const setContextDefault = (root, current) => {
     // Set inContext to false for every node in the tree
-    if (false) {
+    if (true) {
       setAllNodesContext(root, false);
 
       // Set inContext to true from current node up to the root
@@ -753,6 +771,7 @@ const Chatbot = () => {
   }
 
   const sendMessage = async () => {
+    
     if (input === "" || input.trim() === "") return;
     const userMessage = MessageNode(
       currentMessage,
@@ -777,7 +796,7 @@ const Chatbot = () => {
     setCurrentMessage(userMessage);
     setInput("");
 
-    const botResponse = await getBotReply(input, currentMessage, messages);
+    const botResponse = await getBotReply(input, currentMessage, messages, pdfs);
 
     console.log(botResponse);
     const botReply = MessageNode(
@@ -793,6 +812,8 @@ const Chatbot = () => {
     setCurrentMessage(botReply);
 
     setContextDefault(messages, botReply);
+    console.log(pdfs);
+    console.log("**********************************************************");
   };
 
   const handleKeyDown = (event) => {
@@ -909,7 +930,14 @@ const Chatbot = () => {
               </div>
             </div>
 
-            <div style={{ flex: 2 }}>
+            
+
+            <div style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ maxHeight: '21.375vh', overflowY: 'auto' }}>
+      {/* Pass the lifted state and handler as props to PdfViewerComponent */}
+      <PdfViewerComponent pdfs={pdfs} setPdfs={setPdfs} onFileChange={onFileChange} />
+    </div>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
               <MiniView
                 messages={messages}
                 setCurrentMessage={setCurrentMessage}
@@ -917,6 +945,7 @@ const Chatbot = () => {
                 current={currentMessage}
                 setInc={incrementMessageCount}
               />
+              </div>
             </div>
           </div>
         </div>

@@ -62,3 +62,41 @@ To branch the tree of messages, select a current message that isn't already a le
 - **Enter**: To send a message and get a response.
 - **Shift + Enter**: To add a newline in your message.
 - **Ctrl + Enter**: To add a message to the tree without a bot response.
+
+
+## PDF Interaction Features
+
+The application includes a sophisticated PDF interaction feature, allowing users to upload, view, and select specific pages from multiple PDF documents. This functionality is integrated into the chatbot's context, enhancing the interaction experience.
+
+### Uploading and Viewing PDFs
+
+1. **Upload PDFs:**
+   - Click the "Choose File" button to upload one or more PDF documents.
+   - Uploaded PDFs will be displayed as thumbnails within the application.
+
+2. **Viewing PDF Content:**
+   - Double-click on any PDF thumbnail to open a detailed view.
+   - In this detailed view, you can browse through all the pages of the selected PDF.
+
+### Selecting Pages for Context
+
+- **Select Specific Pages:**
+  - While viewing a PDF, click on individual pages to select or deselect them.
+  - The selected pages are used to extract text, which becomes part of the chatbot’s context.
+  - This feature allows for a more dynamic and contextual interaction with the bot, as it can reference content from the selected PDF pages.
+
+### Integration with Chatbot
+
+- **Contextual Responses:**
+  - The text extracted from selected pages of PDFs is used by the chatbot to provide more accurate and context-aware responses.
+  - This integration allows for a seamless blend of document content and chatbot intelligence, enhancing the overall user experience.
+
+### Managing PDFs
+
+- **Multi-PDF Support:**
+  - You can upload and manage multiple PDFs simultaneously.
+  - Each PDF acts independently, allowing for separate page selections and views.
+
+- **Dynamic Interaction:**
+  - Interact dynamically with the chatbot using the content of your selected PDF pages.
+  - This feature makes the chatbot an effective tool for handling inquiries or discussions based on document content.

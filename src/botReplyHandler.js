@@ -1,6 +1,45 @@
+import { pdfjs } from 'react-pdf';
 
 const YOUR_GENERATED_SECRET = process.env.REACT_APP_YOUR_GENERATED_SECRET;
 const useApi = false;
+
+
+
+
+const compilePdfContext = async (pdfs) => {
+  let contextString = "";
+
+  // Check if pdfs is defined and is an array
+  if (!Array.isArray(pdfs)) {
+    console.error("Invalid or undefined 'pdfs' array:", pdfs);
+    return contextString;
+  }
+
+  for (const pdf of pdfs) {
+    // Only process if there are selected pages
+    if (pdf.selectedPages && pdf.selectedPages.size > 0) {
+      const loadingTask = pdfjs.getDocument(pdf.file);
+      try {
+        const doc = await loadingTask.promise;
+        for (const pageNumber of pdf.selectedPages) {
+          const page = await doc.getPage(pageNumber);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map(item => item.str).join(' ');
+          contextString += `Page ${pageNumber} of ${pdf.fileName}: ${pageText}\n\n`;
+        }
+      } catch (error) {
+        console.error(`Error loading page content from PDF: ${pdf.fileName}`, error);
+      } finally {
+        loadingTask.destroy();
+      }
+    }
+  }
+
+  return contextString.trim();
+};
+
+
+
 
 const generateConversationLists = (currentMessage, messagesTree) => {
     let conversationList = [];
@@ -63,10 +102,15 @@ const generateConversationLists = (currentMessage, messagesTree) => {
 
 
 
-const getBotReply = async (input, currentMessage, messagesTree) => {
+const getBotReply = async (input, currentMessage, messagesTree, pdfs) => {
+    console.log("PDFS: ", pdfs);
+    console.log("SDHFSDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+
+    const pdfsString = await compilePdfContext(pdfs);
+    // const pdfsString = ""
 
     const conversationHistory = getConversationHistory(currentMessage, messagesTree);
-    const fullPrompt = "#Conversation: " + conversationHistory + "\n#user: " + input + "\nbot: ";
+    const fullPrompt = "#PDFS: " + pdfsString + "\n#Conversation: " + conversationHistory + "\n#user: " + input + "\nbot: ";
     console.log("\n\nFULL")
     console.log(fullPrompt);
 
