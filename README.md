@@ -65,40 +65,49 @@ To branch the tree of messages, select a current message that isn't already a le
 
 ## PDF Interaction Features
 
-The application includes a sophisticated PDF interaction feature, allowing users to upload, view, and select specific pages from multiple PDF documents. This functionality is integrated into the chatbot's context, enhancing the interaction experience.
+The application now includes a sophisticated PDF interaction feature, enabling users to upload, view, and select specific pages from multiple PDF documents. This functionality is seamlessly integrated, enhancing the user interaction experience with the chatbot.
 
 ### Uploading and Viewing PDFs
 
 1. **Upload PDFs:**
-   - Click the "Choose File" button to upload one or more PDF documents.
-   - Uploaded PDFs will be displayed as thumbnails within the application.
+   - Users can upload one or more PDF documents by clicking the "Choose File" button.
+   - Uploaded PDFs are displayed as thumbnails for easy access and identification.
 
 2. **Viewing PDF Content:**
-   - Double-click on any PDF thumbnail to open a detailed view.
-   - In this detailed view, you can browse through all the pages of the selected PDF.
+   - Double-click on any PDF thumbnail to open a modal with a detailed view of the document.
+   - This detailed view allows users to browse through all the pages of the selected PDF.
 
 ### Selecting Pages for Context
 
 - **Select Specific Pages:**
-  - While viewing a PDF, click on individual pages to select or deselect them.
-  - The selected pages are used to extract text, which becomes part of the chatbot’s context.
-  - This feature allows for a more dynamic and contextual interaction with the bot, as it can reference content from the selected PDF pages.
+  - In the detailed view, users can click on individual pages to select or deselect them.
+  - The selected pages are used to extract text, which becomes part of the chatbot’s context for dynamic conversations.
+  - This feature enhances interaction, as the chatbot can reference content from the selected PDF pages for context-aware responses.
 
 ### Integration with Chatbot
 
 - **Contextual Responses:**
-  - The text extracted from selected pages of PDFs is used by the chatbot to provide more accurate and context-aware responses.
-  - This integration allows for a seamless blend of document content and chatbot intelligence, enhancing the overall user experience.
+  - Extracted text from selected PDF pages is utilized by the chatbot to provide more relevant and context-specific responses.
+  - This integration leads to a more intuitive and enriched user experience, blending document content with intelligent chatbot interactions.
 
 ### Managing PDFs
 
 - **Multi-PDF Support:**
-  - You can upload and manage multiple PDFs simultaneously.
-  - Each PDF acts independently, allowing for separate page selections and views.
+  - The application supports uploading and managing multiple PDFs concurrently.
+  - Each PDF is treated independently, allowing for individual page selection and document management.
 
 - **Dynamic Interaction:**
-  - Interact dynamically with the chatbot using the content of your selected PDF pages.
-  - This feature makes the chatbot an effective tool for handling inquiries or discussions based on document content.
+  - Users can interact dynamically with the chatbot, leveraging the content of selected PDF pages.
+  - This makes the chatbot an effective tool for handling specific inquiries or discussions based on the document content.
 
-  # PDF page selector
-![Screenshot](screen2.PNG)
+### Large View in PDF Interaction
+
+- **Large View for PDFs:** Users can open a detailed Large View of any PDF page by double-clicking on its thumbnail.
+- **Dynamic Sizing:** This view dynamically adjusts to the page's size, maintaining the correct aspect ratio and centering content horizontally.
+- **Scrollable Interface:** Long pages are scrollable within the Large View, allowing complete page content access.
+- **Enhanced Readability:** Offers a clearer and more detailed examination of PDF pages.
+- **Easy Navigation:** Simplifies navigating through different pages within the Large View.
+
+
+# PDF Page Selector
+![PDF Page Selector Screenshot](screen2.PNG)
