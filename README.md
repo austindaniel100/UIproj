@@ -1,6 +1,6 @@
 
 # Chatbot UI
-![Screenshot](screen1.PNG)
+![Screenshot](screen.PNG)
 
 ## How to Run
 
