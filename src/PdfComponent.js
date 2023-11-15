@@ -7,6 +7,13 @@ Modal.setAppElement('#root');
 
 const PdfViewerComponent = ({ pdfs, setPdfs }) => {
     const [openPopupIndex, setOpenPopupIndex] = useState(-1);
+    const [hoveredPage, setHoveredPage] = useState({ pdfIndex: null, pageNumber: null });
+    const [pageAspectRatio, setPageAspectRatio] = useState(null); // New state for storing the aspect ratio
+
+    // Function to handle mouse hover on a page
+    const handlePageHover = (pdfIndex, pageNumber) => {
+        setHoveredPage({ pdfIndex, pageNumber });
+    };
 
     const onFileChange = (event) => {
         Array.from(event.target.files).forEach(file => {
@@ -123,21 +130,32 @@ const PdfViewerComponent = ({ pdfs, setPdfs }) => {
         marginBottom: '20px', // Add space between the file input and the list of PDFs
     };
 
+    // Style for the large view container with a fixed maximum height
+// Updated style for the large view container
+const largeViewContainerStyle = {
+    display: 'flex',
+    justifyContent: 'center', // Aligns content to the start of the flex container
+    alignItems: 'flex-start', // Aligns items to the start of the container on the cross-axis
+    maxHeight: '800px', // Set the maximum height as needed
+    overflow: 'auto', // Allows scrolling if the content is taller than the max height
+    background: 'transparent'
+};
+
+
+
     return (
         <div style={componentContainerStyle}>
             <div style={fileInputContainerStyle}>
                 <input type="file" onChange={onFileChange} multiple style={fileInputStyle} />
             </div>
             <div>
-            {pdfs.map((pdf, index) => (
-    <div key={index} onClick={() => setOpenPopupIndex(index)} style={pdfThumbnailStyle}>
-        <div style={fileNameStyle}> {/* Apply the new style here */}
-            {pdf.fileName}
-        </div>
-        {/* The rest of your thumbnail content goes here */}
-    </div>
-))}
-
+                {pdfs.map((pdf, index) => (
+                    <div key={index} onClick={() => setOpenPopupIndex(index)} style={pdfThumbnailStyle}>
+                        <div style={fileNameStyle}>
+                            {pdf.fileName}
+                        </div>
+                    </div>
+                ))}
             </div>
             {pdfs.map((pdf, index) => (
                 <Modal
@@ -148,20 +166,35 @@ const PdfViewerComponent = ({ pdfs, setPdfs }) => {
                     style={modalStyle}
                 >
                     <button onClick={() => setOpenPopupIndex(-1)} style={{ position: 'absolute', top: 0, left: 0, color: 'white', backgroundColor: '#8A2BE2', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}>X</button>
-                    <Document file={pdf.file} onLoadSuccess={(event) => onDocumentLoadSuccess(index, event)}>
-                        {Array.from({ length: pdf.numPages }, (_, i) => i + 1).map(pageNumber => (
-                            <div key={pageNumber} onClick={() => togglePageSelection(index, pageNumber)} style={pdfThumbnailStyle}>
-                                {pdf.selectedPages.has(pageNumber) && (
-                                    <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, backgroundColor: 'rgba(0, 128, 0, 0.5)', zIndex: 1 }}></div>
-                                )}
-                                
-                                <div style={pageNumberLabelStyle}>
-                                    Page<br />{pageNumber}
-                                </div>
-                                <Page pageNumber={pageNumber} width={150} height={150} />
-                            </div>
-                        ))}
-                    </Document>
+                    <div style={{ display: 'flex' }}>
+                        <div style={{ width: '50%' }}>
+                            <Document file={pdf.file} onLoadSuccess={(event) => onDocumentLoadSuccess(index, event)}>
+                                {Array.from({ length: pdf.numPages }, (_, i) => i + 1).map(pageNumber => (
+                                    <div key={pageNumber} onClick={() => togglePageSelection(index, pageNumber)} onMouseEnter={() => handlePageHover(index, pageNumber)} style={pdfThumbnailStyle}>
+                                        {pdf.selectedPages.has(pageNumber) && (
+                                            <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, backgroundColor: 'rgba(0, 128, 0, 0.5)', zIndex: 1 }}></div>
+                                        )}
+                                        <div style={pageNumberLabelStyle}>
+                                            Page<br />{pageNumber}
+                                        </div>
+                                        <Page pageNumber={pageNumber} width={150} height={150} />
+                                    </div>
+                                ))}
+                            </Document>
+                        </div>
+                        <div style={{ width: '50%' }}>
+                            {hoveredPage.pdfIndex === index && (
+                                <Document file={pdfs[hoveredPage.pdfIndex].file}>
+                                    <div style={largeViewContainerStyle}>
+                                        <Page
+                                            pageNumber={hoveredPage.pageNumber}
+                                            width={500}
+                                        />
+                                    </div>
+                                </Document>
+                            )}
+                        </div>
+                    </div>
                 </Modal>
             ))}
         </div>
