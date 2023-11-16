@@ -112,3 +112,23 @@ The application now includes a sophisticated PDF interaction feature, enabling u
 
 # PDF Page Selector
 ![PDF Page Selector Screenshot](screenpopup.PNG)
+
+
+## New Features in Chatbot UI
+
+### Predictive Command View
+- Suggests commands based on user input.
+- Navigate through suggestions using the Tab key, and select with Alt + Enter or a click.
+
+### Dynamic Settings Popup
+- Accessible via a `!settings` command.
+- "Lock Settings" toggle pins the settings panel next to the chat input.
+- Clicking outside the popup closes it unless "Lock Settings" is active.
+
+### Responsive Chat Component Layout
+- The chat component expands to full width when MiniView and PDF Viewer are off.
+- Maintains a consistent layout when toggling these views.
+
+### Toggleable MiniView and PDF Viewer
+- New settings added for toggling MiniView and PDF Viewer.
+- Components render based on their respective settings.
