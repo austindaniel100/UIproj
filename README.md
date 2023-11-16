@@ -1,4 +1,5 @@
-todo: chat commands, prompts, settings, toggles, save/load context, contextual sidebar, internet search
+todo: prompts, save/load context, contextual sidebar, internet search
+more chat commands: toggle, prompt, pdfcontext, clear context
 # Chatbot UI
 ![Screenshot](screen.PNG)
 
