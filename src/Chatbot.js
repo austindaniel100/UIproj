@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import ReactMarkdown from 'react-markdown';
 import { Button, TextareaAutosize } from "@mui/material";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { solarizedlight } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -99,6 +100,32 @@ const buttonStyles = {
   display: "inline-block",
   margin: "10px",
   textTransform: 'none'
+};
+
+const popupStyle = {
+  position: 'fixed',
+  top: '50%',
+  left: '50%',
+  color: "#ccc",
+  textAlign: 'left',
+  transform: 'translate(-50%, -50%)',
+  backgroundColor: "#23282d", // Slightly darker background
+  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // Subtle drop shadow
+  borderRadius: "4px", // Optional, but might look good with the shadow
+  padding: '20px',
+  borderRadius: '8px',
+  zIndex: 1000,
+  // ... other styles ...
+};
+
+const popupContentStyle = {
+  maxHeight: '400px',
+  overflowY: 'auto',
+  // ... other styles ...
+};
+
+const closeButtonStyle = {
+  ... buttonStyles,
 };
 
 /**
@@ -500,17 +527,75 @@ const Chatbot = () => {
   const [pdfs, setPdfs] = useState([]);
   const [textareaHeight, setTextareaHeight] = useState(0);
 
-  const handleHelpCommand = () => {
-    // Logic for the help command
-    console.log('Help command executed');
-    // You can update state, show a message, etc.
-  };
+  const readmeContent = `
+  ## Chatbot UI Hotkeys and Commands
+
+  ### Navigation Hotkeys
+  - **Arrow Up**: Navigate to the parent message in the tree.
+  - **Arrow Down**: Navigate to the first child message in the tree.
+  - **Arrow Left**: Navigate to the left sibling message.
+  - **Arrow Right**: Navigate to the right sibling message.
+  - **Ctrl + Arrow Up**: Navigate to the next parent message with branching children.
+  - **Ctrl + Arrow Down**: Navigate down to a leaf message (no children).
   
-  const handleClearCommand = () => {
-    // Logic for the clear command
-    console.log('Clear command executed');
-    // You can clear the chat history or perform other relevant actions
+  ### Message Interaction
+  - **Enter**: Send the message in the input field and receive a bot response.
+  - **Shift + Enter**: Add a newline in the message input field (multi-line input).
+  - **Ctrl + Enter**: Send a message without triggering a bot response.
+  
+  ### Command Functionality
+  - **!help**: Displays the help popup with a list of commands.
+  - **!settings**: Toggles the visibility of the settings popup.
+  
+  ### Additional Features
+  - **MiniView Focus**: Click the "Focus" button to center and zoom the MiniView on the tree of messages.
+  - **Predictive Commands**: As the user types, suggested commands appear based on input. Users can select a command with Tab, Alt + Enter, or mouse click.
+  - **Settings Popup**: Access settings to toggle features like 'Use Api', 'Update Context on Send', 'Toggle MiniView', and 'Toggle PDF Viewer'.
+  
+  ### PDF Interaction
+  - **Uploading PDFs**: Users can upload PDF documents to interact with the chatbot contextually.
+  - **Viewing PDFs**: Uploaded PDFs can be viewed and selected for extracting text to influence chatbot responses.
+  - **PDF Page Selection**: 
+    - Click and drag to select multiple pages.
+    - Ctrl + click and drag to select or deselect individual pages.
+  
+`;
+
+const [showHelpPopup, setShowHelpPopup] = useState(false);
+const helpPopupRef = useRef(null);
+
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (helpPopupRef.current && !helpPopupRef.current.contains(event.target)) {
+      setShowHelpPopup(false);
+    }
   };
+
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, []);
+
+const handleHelpCommand = () => {
+  setShowHelpPopup(true);
+};
+
+
+
+const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
+  return (
+    <div ref={ref} style={popupStyle}>
+      <ReactMarkdown>{content}</ReactMarkdown>
+      <Button onClick={onClose} style={closeButtonStyle}>Close</Button>
+    </div>
+  );
+});
+
+
+// Define styles for popupStyle and closeButtonStyle
+
+  
 
   const [showSettings, setShowSettings] = useState(false);
   const settingsRef = useRef(null);
@@ -535,7 +620,6 @@ const Chatbot = () => {
 
   const commandHandlers = {
     "!help": handleHelpCommand,
-    "!clear": handleClearCommand,
     "!settings": handleSettingsCommand,
     // Add more mappings as needed
   };
@@ -543,7 +627,6 @@ const Chatbot = () => {
 
   const chatCommands = [
     { command: "!help", description: "Show help information" },
-    { command: "!clear", description: "Clear the chat" },
     { command: "!settings", description: "Show settings"}
     // Add more commands as needed
   ];
@@ -1048,6 +1131,10 @@ const miniViewPdfViewerContainerStyle = {
   flexDirection: 'column',
 };
 
+
+// Include the rest of your README content here
+
+
   
   
 
@@ -1089,6 +1176,13 @@ const miniViewPdfViewerContainerStyle = {
           isLocked={lockSettings}
         />
       )}
+      {showHelpPopup && (
+      <HelpPopup
+        ref={helpPopupRef}
+        content={readmeContent}
+        onClose={() => setShowHelpPopup(false)}
+      />
+    )}
       <div
         style={{
           display: "flex",

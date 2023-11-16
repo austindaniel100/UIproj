@@ -28,9 +28,10 @@ The application will start running on `http://localhost:3000`, or another availa
 
 To interact with the bot and get responses:
 - Ensure you have the API key set in the `.env` file.
-- Set `useApi` to `true` in `botReplyHandler.js`.
+- Set `useApi` to `true` in settings.
 - The context for messages is determined by traversing up the tree of messages.
 - Messages that are part of the context are highlighted in green.
+- PDF pages that are part of the context are highlighted in green.
 
 ## Navigation Instructions
 
@@ -133,3 +134,35 @@ The application now includes a sophisticated PDF interaction feature, enabling u
 ### Toggleable MiniView and PDF Viewer
 - New settings added for toggling MiniView and PDF Viewer.
 - Components render based on their respective settings.
+
+
+## Chatbot UI Hotkeys and Commands
+
+### Navigation Hotkeys
+- **Arrow Up**: Navigate to the parent message in the tree.
+- **Arrow Down**: Navigate to the first child message in the tree.
+- **Arrow Left**: Navigate to the left sibling message.
+- **Arrow Right**: Navigate to the right sibling message.
+- **Ctrl + Arrow Up**: Navigate to the next parent message with branching children.
+- **Ctrl + Arrow Down**: Navigate down to a leaf message (no children).
+
+### Message Interaction
+- **Enter**: Send the message in the input field and receive a bot response.
+- **Shift + Enter**: Add a newline in the message input field (multi-line input).
+- **Ctrl + Enter**: Send a message without triggering a bot response.
+
+### Command Functionality
+- **!help**: Executes the `handleHelpCommand` function (e.g., show help information).
+- **!settings**: Toggles the visibility of the settings popup.
+
+### Additional Features
+- **MiniView Focus**: Click the "Focus" button to center and zoom the MiniView on the tree of messages.
+- **Predictive Commands**: As the user types, suggested commands appear based on input. Users can select a command with Tab, Alt + Enter, or mouse click.
+- **Settings Popup**: Access settings to toggle features like 'Use Api', 'Update Context on Send', 'Toggle MiniView', and 'Toggle PDF Viewer'.
+
+### PDF Interaction
+- **Uploading PDFs**: Users can upload PDF documents to interact with the chatbot contextually.
+- **Viewing PDFs**: Uploaded PDFs can be viewed and selected for extracting text to influence chatbot responses.
+- **PDF Page Selection**: 
+  - Click and drag to select multiple pages.
+  - Ctrl + click and drag to select or deselect individual pages.
