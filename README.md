@@ -1,4 +1,4 @@
-
+todo: chat commands, prompts, settings, toggles, save/load context, contextual sidebar, internet search
 # Chatbot UI
 ![Screenshot](screen.PNG)
 

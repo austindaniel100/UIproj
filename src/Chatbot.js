@@ -5,6 +5,8 @@ import { solarizedlight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import getBotReply from "./botReplyHandler";
 import ChatComponent from "./ChatComponent";
 import PdfViewerComponent from "./PdfComponent";
+import SettingsPopup from './SettingsPopup'; // Adjust the path as per your file structure
+
 
 import * as d3 from "d3";
 
@@ -477,8 +479,84 @@ g.selectAll(".click-capture")
  */
 
 const Chatbot = () => {
+  const [lockSettings, setLockSettings] = useState(false);
+
+  const [settings, setSettings] = useState({
+    'Use Api': false,
+    'Update Context on Send': true,
+    'Toggle Miniview': true,
+    'Toggle PDF Viewer': true,
+  });
+
+  
+
+  const updateSetting = (setting, value) => {
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      [setting]: value
+    }));
+  };
 
   const [pdfs, setPdfs] = useState([]);
+  const [textareaHeight, setTextareaHeight] = useState(0);
+
+  const handleHelpCommand = () => {
+    // Logic for the help command
+    console.log('Help command executed');
+    // You can update state, show a message, etc.
+  };
+  
+  const handleClearCommand = () => {
+    // Logic for the clear command
+    console.log('Clear command executed');
+    // You can clear the chat history or perform other relevant actions
+  };
+
+  const [showSettings, setShowSettings] = useState(false);
+  const settingsRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target) && !lockSettings && showSettings) {
+        setShowSettings(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [lockSettings, showSettings]);
+
+  const handleSettingsCommand = () => {
+    setShowSettings(!showSettings); // Toggle the visibility of the settings popup
+  };
+  
+
+  const commandHandlers = {
+    "!help": handleHelpCommand,
+    "!clear": handleClearCommand,
+    "!settings": handleSettingsCommand,
+    // Add more mappings as needed
+  };
+  
+
+  const chatCommands = [
+    { command: "!help", description: "Show help information" },
+    { command: "!clear", description: "Clear the chat" },
+    { command: "!settings", description: "Show settings"}
+    // Add more commands as needed
+  ];
+  
+
+  const [suggestions, setSuggestions] = useState([]);
+
+  
+
+  const toggleLockSettings = (value) => {
+    setLockSettings(value);
+  };
+
 
   const onFileChange = (event) => {
     const newPdfs = Array.from(event.target.files).map((file) => {
@@ -495,6 +573,15 @@ const Chatbot = () => {
     setPdfs((prevPdfs) => [...prevPdfs, ...newPdfs]);
   };
   const textareaRef = useRef(null);
+
+const updateTextareaHeight = () => {
+  if (textareaRef.current) {
+    setTextareaHeight(textareaRef.current.scrollHeight);
+  }
+};
+
+
+
 
   const [messageCount, setMessageCount] = useState(0);
   const incrementMessageCount = () => {
@@ -532,7 +619,7 @@ const Chatbot = () => {
 
   const setContextDefault = (root, current) => {
     // Set inContext to false for every node in the tree
-    if (true) {
+    if (settings['Update Context on Send']) {
       setAllNodesContext(root, false);
 
       // Set inContext to true from current node up to the root
@@ -767,12 +854,25 @@ const Chatbot = () => {
       setInput("");
 
       setContextDefault(messages, userMessage);
+      setSuggestions([]);
 
   }
 
   const sendMessage = async () => {
     
     if (input === "" || input.trim() === "") return;
+
+    const parts = input.split(' ');
+    const command = parts[0];
+    const rest = parts.slice(1).join(' ');
+    const args = rest.split('|').map(arg => arg.trim());
+
+    if (commandHandlers[command]) {
+      console.log("args: ", args);
+      sendCommand(command, args);
+      setInput(""); // Clear the input field
+      return; // Return early
+    }
     const userMessage = MessageNode(
       currentMessage,
       incrementMessageCount,
@@ -796,7 +896,7 @@ const Chatbot = () => {
     setCurrentMessage(userMessage);
     setInput("");
 
-    const botResponse = await getBotReply(input, currentMessage, messages, pdfs);
+    const botResponse = await getBotReply(input, currentMessage, messages, pdfs, settings['Use Api']);
 
     console.log(botResponse);
     const botReply = MessageNode(
@@ -812,12 +912,51 @@ const Chatbot = () => {
     setCurrentMessage(botReply);
 
     setContextDefault(messages, botReply);
-    console.log(pdfs);
-    console.log("**********************************************************");
+    // console.log(pdfs);
+    // console.log("**********************************************************");
+    setSuggestions([]);
   };
 
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+    const inputText = e.target.value.trim();
+  
+    // Filter commands based on the entire input text
+    const filteredCommands = chatCommands.filter(cmd => 
+      cmd.command.includes(inputText)
+    );
+    if (inputText === "") {
+      setSuggestions([]);
+      return;
+    }
+  
+    setSuggestions(filteredCommands);
+  };
+  
+
+  const sendCommand = (command) => {
+    const commandFunction = commandHandlers[command];
+    if (commandFunction) {
+      commandFunction();
+    } else {
+      console.log(`Unknown command: ${command}`);
+      // Handle unknown commands, show error message, etc.
+    }
+    setInput("");
+    setSuggestions([]);
+  };
+  
+  
+
   const handleKeyDown = (event) => {
-    if (event.key === "Enter" && event.ctrlKey) {
+    if (event.key === "Tab" && suggestions.length > 0) {
+      event.preventDefault(); // Prevent the default tab behavior
+      setFocusedIndex((prevIndex) => (prevIndex + 1) % suggestions.length);
+    } else if (event.key === "Enter" && event.altKey && focusedIndex >= 0) {
+      event.preventDefault();
+      sendCommand(suggestions[focusedIndex].command); // Implement sendCommand
+    }
+    else if (event.key === "Enter" && event.ctrlKey) {
       event.preventDefault();  // Prevent the default action (newline) for Enter key
       sendMessageOnly();
     } else if (event.key === "Enter" && event.shiftKey) {
@@ -825,8 +964,92 @@ const Chatbot = () => {
     } else if (event.key === "Enter" && input.trim() !== "") {
       event.preventDefault();  // Prevent the default action (newline) for Enter key
       sendMessage();  // Call the updated sendMessage function
+    } else if (event.key === "Tab") {
+      event.preventDefault();  // Prevent the default action (tab) for Tab key
+      
     }
   };
+  
+  const [focusedIndex, setFocusedIndex] = useState(-1); // -1 means no item is focused
+  
+
+  const PredictiveView = ({ suggestions }) => {
+    
+    const [hoverIndex, setHoverIndex] = useState(null); // Track which item is being hovered
+
+    const predictiveViewStyle = {
+      position: 'absolute',
+      bottom: `${textareaHeight + 10}px`, // 10px is additional spacing; adjust as needed
+      left: '0',
+      width: '33%',
+      backgroundColor: '#333', // Dark background
+      color: '#fff', // Light text for contrast
+      border: '1px solid #555', // Slight border for definition
+      borderRadius: '4px', // Rounded corners
+      boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.5)', // Subtle shadow for depth
+      zIndex: 1000, // Ensure it's above other elements
+      overflow: 'hidden', // In case of too many suggestions
+      maxHeight: '200px', // Limit the height
+    };
+    
+    const predictiveViewItemStyle = {
+      userSelect: 'none',
+      padding: '10px 15px',
+      cursor: 'pointer',
+      borderBottom: '1px solid #555', // Separator between items
+      textAlign: 'left', // Align text to the left
+      '&:hover': {
+        backgroundColor: '#484848', // Slight change on hover for interactivity
+      }
+    };
+  
+    const predictiveViewItemHoverStyle = {
+      ...predictiveViewItemStyle,
+      backgroundColor: '#484848', // Slight change on hover for interactivity
+    };
+  
+    const getPredictiveViewItemStyle = (index) => ({
+      ...predictiveViewItemStyle,
+      backgroundColor: index === focusedIndex ? '#484848' : 'transparent',
+    });
+  
+    const handleClick = (command) => {
+      sendCommand(command);
+    };
+  
+    return (
+      <div style={predictiveViewStyle}>
+        {suggestions.map((suggestion, index) => (
+          <div 
+            key={index}
+            style={hoverIndex === index ? predictiveViewItemHoverStyle : getPredictiveViewItemStyle(index)}
+            onMouseEnter={() => setHoverIndex(index)}
+            onMouseLeave={() => setHoverIndex(null)}
+            onClick={() => handleClick(suggestion.command)} // Handle click on suggestion
+          >
+            {suggestion.command} - {suggestion.description}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  useEffect(() => {
+    updateTextareaHeight();
+  }, [textareaHeight]); // Dependency array includes textareaHeight
+
+  const isMiniViewActive = settings['Toggle Miniview'];
+const isPdfViewerActive = settings['Toggle PDF Viewer'];
+
+// Container style for MiniView and PDF Viewer
+const miniViewPdfViewerContainerStyle = {
+  flex: isMiniViewActive && isPdfViewerActive ? 2 : (isMiniViewActive || isPdfViewerActive ? 2 : 0),
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+  
+  
 
   return (
     <>
@@ -857,7 +1080,15 @@ const Chatbot = () => {
                 }
             `}
       </style>
-
+      {!lockSettings && showSettings && (
+        <SettingsPopup
+          ref={settingsRef}
+          settings={settings}
+          updateSetting={updateSetting}
+          toggleLockSettings={toggleLockSettings}
+          isLocked={lockSettings}
+        />
+      )}
       <div
         style={{
           display: "flex",
@@ -887,15 +1118,15 @@ const Chatbot = () => {
             }}
           >
             <div
-              className="dark-scrollbar"
-              style={{
-                flex: 3,
-                marginRight: "2%",
-                paddingRight: "1%",
-                overflowY: "auto",
-                paddingBottom: "3%",
-              }}
-            >
+      className="dark-scrollbar"
+      style={{
+        flex: 3, // Adjust the flex value
+        marginRight: "2%",
+        paddingRight: "1%",
+        overflowY: "auto",
+        paddingBottom: "3%",
+      }}
+    >
               <ChatComponent currentMessage={currentMessage} increment = {incrementMessageCount} />
 
               <div
@@ -905,18 +1136,21 @@ const Chatbot = () => {
                   left: "10%",
                   width: "80vw",
                   display: "flex",
-                  justifyContent: "space-between",
+                  justifyContent: lockSettings ? 'space-between' : 'center',
                   alignItems: "flex-end",
+                  flexDirection: 'row',
                 }}
               >
+                {suggestions.length > 0 && <PredictiveView suggestions={suggestions} />}
                 <TextareaAutosize
                   ref={textareaRef}
                   minRows={1}
                   maxRows={10}
-                  style={textareaStyles}
+                  style={{...textareaStyles, marginTop: suggestions.length > 0 ? '210px' : '10px'}}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
+                  onInput={updateTextareaHeight}
                 />
 
                 <Button
@@ -927,25 +1161,40 @@ const Chatbot = () => {
                 >
                   Send
                 </Button>
+                {lockSettings && showSettings && (
+          <SettingsPopup
+            ref={settingsRef}
+            settings={settings}
+            updateSetting={updateSetting}
+            toggleLockSettings={toggleLockSettings}
+            isLocked={lockSettings}
+          />
+        )}
               </div>
             </div>
 
             
 
-            <div style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
-            <div style={{...svgStyles, maxHeight: '21.375vh', overflowY: 'auto' }}>
+            <div style={miniViewPdfViewerContainerStyle}>
+            <div style={{flex: 1, overflowY: 'auto' }}>
       {/* Pass the lifted state and handler as props to PdfViewerComponent */}
-      <PdfViewerComponent pdfs={pdfs} setPdfs={setPdfs} onFileChange={onFileChange} />
+      {settings['Toggle PDF Viewer'] && (
+      <div style={{...svgStyles, maxHeight: '21.375vh', overflowY: 'auto' }}>
+        <PdfViewerComponent pdfs={pdfs} setPdfs={setPdfs} onFileChange={onFileChange} />
+      </div>
+    )}
     </div>
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-              <MiniView
-                messages={messages}
-                setCurrentMessage={setCurrentMessage}
-                increment={messageCount}
-                current={currentMessage}
-                setInc={incrementMessageCount}
-              />
-              </div>
+    {settings['Toggle Miniview'] && (
+      <div style={{ flex: 3, overflowY: 'auto' }}>
+        <MiniView
+          messages={messages}
+          setCurrentMessage={setCurrentMessage}
+          increment={messageCount}
+          current={currentMessage}
+          setInc={incrementMessageCount}
+        />
+      </div>
+    )}
             </div>
           </div>
         </div>

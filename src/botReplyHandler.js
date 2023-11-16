@@ -1,7 +1,6 @@
 import { pdfjs } from 'react-pdf';
 
 const YOUR_GENERATED_SECRET = process.env.REACT_APP_YOUR_GENERATED_SECRET;
-const useApi = false;
 
 
 
@@ -102,7 +101,7 @@ const generateConversationLists = (currentMessage, messagesTree) => {
 
 
 
-const getBotReply = async (input, currentMessage, messagesTree, pdfs) => {
+const getBotReply = async (input, currentMessage, messagesTree, pdfs, useApi) => {
     console.log("PDFS: ", pdfs);
     console.log("SDHFSDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
 
@@ -115,26 +114,31 @@ const getBotReply = async (input, currentMessage, messagesTree, pdfs) => {
     console.log(fullPrompt);
 
     try {
+      console.log("OK DOING IT NOW");
         if (!useApi) {
             throw new Error("API usage is turned off");
         }
+        console.log("1");
         
         const resp = await fetch('https://api.promptperfect.jina.ai/RlYg9Ir63bt7Sr1w1b34', {
-            headers: {
-                'x-api-key': `token ${YOUR_GENERATED_SECRET}`,
-                'content-type': 'application/json'
-            }, 
-            body: JSON.stringify({"parameters": {"prompt": fullPrompt}}),
-            method: 'POST'
-        });
+        headers: {
+          'x-api-key': `token ${YOUR_GENERATED_SECRET}`,
+          'content-type': 'application/json'
+        }, 
+        body: JSON.stringify({"parameters": {"prompt":fullPrompt}}),
+        method: 'POST'
+      });
+        console.log("1");
 
         if (!resp.ok) {
             throw new Error('Http error: ' + resp.status);
         }
+        console.log("1");
 
         const reader = resp.body.getReader();
         const decoder = new TextDecoder();
         let fullResponse = "";
+        console.log("1");
 
         while (true) {
             const {done, value} = await reader.read();
@@ -149,6 +153,7 @@ const getBotReply = async (input, currentMessage, messagesTree, pdfs) => {
 
                 events.forEach(event => {
                     const data = event.replace(/data: /g, '');
+                    console.log(data);
 
                     if (data) {
                         // For now, just append the data. Adjust this if needed.
@@ -157,11 +162,14 @@ const getBotReply = async (input, currentMessage, messagesTree, pdfs) => {
                 });
             }
         }
+        console.log("1");
+        console.log("fullResponse: ", fullResponse);
 
         return fullResponse; // This will return the full concatenated response from the stream.
+
     } catch (error) {
         console.error("failed to fetch bot reply: ", error);
-        return "API call failed or is not turned on.  Default bot response.\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1";
+        return "API call failed or is not turned on.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1";
     }
 };
 
