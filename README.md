@@ -80,7 +80,8 @@ The application now includes a sophisticated PDF interaction feature, enabling u
 ### Selecting Pages for Context
 
 - **Select Specific Pages:**
-  - In the detailed view, users can click on individual pages to select or deselect them.
+  - In the detailed view, users can click on individual pages or drag a selection to select.
+    - **Ctrl + click** to deselect.
   - The selected pages are used to extract text, which becomes part of the chatbot’s context for dynamic conversations.
   - This feature enhances interaction, as the chatbot can reference content from the selected PDF pages for context-aware responses.
 
