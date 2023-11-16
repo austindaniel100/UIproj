@@ -8,7 +8,9 @@ Modal.setAppElement('#root');
 const PdfViewerComponent = ({ pdfs, setPdfs }) => {
     const [openPopupIndex, setOpenPopupIndex] = useState(-1);
     const [hoveredPage, setHoveredPage] = useState({ pdfIndex: null, pageNumber: null });
-    const [pageAspectRatio, setPageAspectRatio] = useState(null); // New state for storing the aspect ratio
+    const [isMouseDown, setIsMouseDown] = useState(false);
+    const [dragAction, setDragAction] = useState(null); // New state to track the initial drag action ('select' or 'deselect')
+
 
     // Function to handle mouse hover on a page
     const handlePageHover = (pdfIndex, pageNumber) => {
@@ -29,20 +31,44 @@ const PdfViewerComponent = ({ pdfs, setPdfs }) => {
         setPdfs(prevPdfs => prevPdfs.map((pdf, index) => index === pdfIndex ? { ...pdf, numPages } : pdf));
     };
 
-    const togglePageSelection = (pdfIndex, pageNumber) => {
+    const togglePageSelection = (pdfIndex, pageNumber, event) => {
+        const isCtrlPressed = event && event.ctrlKey; // Check if event exists and Ctrl key is pressed
+
         setPdfs(prevPdfs => prevPdfs.map((pdf, index) => {
             if (index === pdfIndex) {
                 const newSelection = new Set(pdf.selectedPages);
-                if (newSelection.has(pageNumber)) {
-                    newSelection.delete(pageNumber);
-                } else {
+                if (!isCtrlPressed) {
+                    console.log("HUH2?");
                     newSelection.add(pageNumber);
+                } else {
+                    console.log("HUH?");
+                    newSelection.delete(pageNumber);
                 }
                 return { ...pdf, selectedPages: newSelection };
             }
             return pdf;
         }));
     };
+
+    // Handle mouse down event
+    const handleMouseDown = () => {
+        setIsMouseDown(true);
+    };
+
+    // Handle mouse up event
+    const handleMouseUp = () => {
+        setIsMouseDown(false);
+    };
+
+    useEffect(() => {
+        document.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            document.removeEventListener('mousedown', handleMouseDown);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, []);
 
     useEffect(() => {
         function closeOnEscapeKey(e) {
@@ -54,30 +80,39 @@ const PdfViewerComponent = ({ pdfs, setPdfs }) => {
         return () => document.body.removeEventListener('keydown', closeOnEscapeKey);
     }, []);
 
+    const triggerFileInputClick = () => {
+        document.getElementById("hiddenFileInput").click();
+    };
+
     const componentContainerStyle = {
-        backgroundColor: "#23282d",
-        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)",
-        borderRadius: "4px",
         padding: "10px",
-        color: "white",
+        color: "#ccc"
     };
 
     const fileInputStyle = {
-        backgroundColor: "#222",
-        color: "white",
-        border: "none",
-        borderRadius: "4px",
-        padding: "8px 16px",
-        boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
-        marginBottom: "10px",
+        display: 'none', // Hide the actual file input
     };
+
+    const customButtonStyle = {
+        backgroundColor: "#343434", // Choose a color that fits your theme
+        color: "#ccc",
+        border: "1px solid #444444",
+        borderRadius: "4px",
+        padding: "10px 15px",
+        cursor: "pointer",
+        fontSize: "16px",
+        display: "inline-block", // Change to inline-block
+        // Optionally, you can add some margins for spacing
+        margin: "10px"
+    };
+    
 
     const pdfThumbnailStyle = {
         backgroundColor: "#262626",
         boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.3)",
         borderRadius: "5px",
-        width: '150px',
-        height: '150px',
+        width: '100px',
+        height: '100px',
         display: 'inline-block',
         textAlign: 'center',
         justifyContent: 'center', 
@@ -87,6 +122,8 @@ const PdfViewerComponent = ({ pdfs, setPdfs }) => {
         wordWrap: 'break-word',
         margin: '5px',
         cursor: 'pointer',
+        userSelect: 'none',
+        color: "#ccc",
     };
 
     const fileNameStyle = {
@@ -95,7 +132,7 @@ const PdfViewerComponent = ({ pdfs, setPdfs }) => {
         left: '50%', // Center horizontally
         transform: 'translate(-50%, -50%)', // Adjust for the element's own size
         width: '90%', // Give some padding inside the thumbnail
-        color: 'white', // Text color
+        color: "#ccc",
         wordWrap: 'break-word', // Wrap long file names to the next line
     };
 
@@ -116,19 +153,15 @@ const PdfViewerComponent = ({ pdfs, setPdfs }) => {
             right: '10%',
             bottom: '10%',
             backgroundColor: "#1e1e1e",
-            color: "white",
+            color: "#ccc",
             borderRadius: "4px",
             overflow: 'auto',
             boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)",
+            userSelect: 'none',
         },
     };
 
-    const fileInputContainerStyle = {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        marginBottom: '20px', // Add space between the file input and the list of PDFs
-    };
+
 
     // Style for the large view container with a fixed maximum height
 // Updated style for the large view container
@@ -143,18 +176,22 @@ const largeViewContainerStyle = {
 
 
 
-    return (
-        <div style={componentContainerStyle}>
-            <div style={fileInputContainerStyle}>
-            <input 
-    type="file" 
-    onChange={onFileChange} 
-    multiple 
-    style={fileInputStyle} 
-    accept="application/pdf" // Restricts file input to PDF files
-/>
 
+    return (
+    <div>
+    <input
+                id="hiddenFileInput"
+                type="file"
+                onChange={onFileChange}
+                multiple
+                style={fileInputStyle}
+                accept="application/pdf"
+            />
+            <div style={customButtonStyle} onClick={triggerFileInputClick}>
+                Choose Files
             </div>
+        <div style={componentContainerStyle}>
+            
             <div>
                 {pdfs.map((pdf, index) => (
                     <div key={index} onClick={() => setOpenPopupIndex(index)} style={pdfThumbnailStyle}>
@@ -177,14 +214,29 @@ const largeViewContainerStyle = {
                         <div style={{ width: '50%' }}>
                             <Document file={pdf.file} onLoadSuccess={(event) => onDocumentLoadSuccess(index, event)}>
                                 {Array.from({ length: pdf.numPages }, (_, i) => i + 1).map(pageNumber => (
-                                    <div key={pageNumber} onClick={() => togglePageSelection(index, pageNumber)} onMouseEnter={() => handlePageHover(index, pageNumber)} style={pdfThumbnailStyle}>
+                                    <div 
+                                    key={pageNumber} 
+                                    onMouseDown={(e) => {
+                                        console.log('Mouse Down Event:', e); // Debugging line
+                                        togglePageSelection(index, pageNumber, e);
+                                        setIsMouseDown(true);
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        console.log('Mouse Enter Event:', e); // Debugging line
+                                        if (isMouseDown) togglePageSelection(index, pageNumber, e);
+                                        handlePageHover(index, pageNumber);
+                                    }}
+                                    onMouseUp={() => setIsMouseDown(false)}
+                                    style={pdfThumbnailStyle}
+                                >
+
                                         {pdf.selectedPages.has(pageNumber) && (
                                             <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, backgroundColor: 'rgba(0, 128, 0, 0.5)', zIndex: 1 }}></div>
                                         )}
                                         <div style={pageNumberLabelStyle}>
                                             Page<br />{pageNumber}
                                         </div>
-                                        <Page pageNumber={pageNumber} width={150} height={150} />
+                                        <Page pageNumber={pageNumber} width={100} height={100} />
                                     </div>
                                 ))}
                             </Document>
@@ -204,6 +256,7 @@ const largeViewContainerStyle = {
                     </div>
                 </Modal>
             ))}
+        </div>
         </div>
     );
 };

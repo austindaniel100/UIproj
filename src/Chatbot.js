@@ -933,7 +933,7 @@ const Chatbot = () => {
             
 
             <div style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ maxHeight: '21.375vh', overflowY: 'auto' }}>
+            <div style={{...svgStyles, maxHeight: '21.375vh', overflowY: 'auto' }}>
       {/* Pass the lifted state and handler as props to PdfViewerComponent */}
       <PdfViewerComponent pdfs={pdfs} setPdfs={setPdfs} onFileChange={onFileChange} />
     </div>
