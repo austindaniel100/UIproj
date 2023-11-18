@@ -218,3 +218,10 @@ The Prompt Popup component is a versatile addition to the chatbot UI, designed t
   - Hover effects on list items improve visual feedback and navigation.
 
 This component significantly streamlines the process of customizing interactions with the chatbot, especially for users who frequently engage with complex or specific queries. It not only enhances the flexibility of the chatbot but also adds a layer of personalization to the user experience.
+
+
+# Prompt popup view
+![Prompt popup view default](screen3.PNG)
+
+# Prompt popup view
+![Prompt popup view example](screen4.PNG)
