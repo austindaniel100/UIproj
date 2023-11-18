@@ -521,7 +521,31 @@ const PromptPopup = React.forwardRef(({ onClose, onSend, onSendWithContext, prom
 
   const [sortByRecency, setSortByRecency] = useState(false); // false for alphabetical, true for recency
 
+  const handleMessageSend = () => {
+    let finalMessage = inputValue;
+  
+    // Replace each placeholder with its corresponding parameter value
+    Object.keys(parameters).forEach(param => {
+      const regex = new RegExp(`{${param}}`, 'g');
+      finalMessage = finalMessage.replace(regex, parameters[param]);
+    });
+  
+    // Now send this finalMessage
+    onSend(finalMessage);
+  };
 
+  const handleMessageSendContext = () => {
+    let finalMessage = inputValue;
+  
+    // Replace each placeholder with its corresponding parameter value
+    Object.keys(parameters).forEach(param => {
+      const regex = new RegExp(`{${param}}`, 'g');
+      finalMessage = finalMessage.replace(regex, parameters[param]);
+    });
+  
+    // Now send this finalMessage
+    onSendWithContext(finalMessage);
+  };
 const handleSearchChange = (event) => {
   const searchText = event.target.value.toLowerCase();
   setSearchInput(searchText);
@@ -558,7 +582,13 @@ const [displayedPrompts, setDisplayedPrompts] = useState(prompts);
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
     parseParameters(event.target.value); 
+  
+    // Clear parameters if no placeholders are present in the input
+    if (!/{\w+}/.test(event.target.value)) {
+      setParameters({});
+    }
   };
+  
 
   const handleNameChange = (event) => {
     setPromptName(event.target.value);
@@ -869,10 +899,10 @@ const searchInputStyle = {
     <Button onClick={handleSavePromptWithParameters} style={buttonStyles}>
       Save Prompt
     </Button>
-    <Button onClick={() => onSend(inputValue)} style={buttonStyles}>
+    <Button onClick={handleMessageSend} style={buttonStyles}>
       Send
     </Button>
-    <Button onClick={() => onSendWithContext(inputValue)} style={buttonStyles}>
+    <Button onClick={handleMessageSendContext} style={buttonStyles}>
       Send with Context
     </Button>
     <Button onClick={onClose} style={buttonStyles}>
@@ -1116,28 +1146,31 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
     setCurrentMessage(userMessage);
     setInput("");
 
-    const botResponse = await BotFunctions.callApi(message, settings['Use Api'], updateBotMessage)
-    console.log(botResponse);
-
     const botReply = MessageNode(
       userMessage,
       incrementMessageCount,
-      botResponse,
+      " ",
       "bot"
     );
+    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
     userMessage.children = [botReply];
 
-
-
-    // Set the user's message as the current message
+    setCurrentBotMessage(botReply);
 
     setCurrentMessage(botReply);
-
     setContextDefault(messages, botReply);
-    // console.log(pdfs);
-    // console.log("**********************************************************");
+    setCurrentBotMessageText("");
+
+    const botResponse = await BotFunctions.getBotReply(input, currentMessage, messages, pdfs, settings['Use Api'], updateBotMessage);
+    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
+    
+    console.log("______________________________________________")
+    console.log(botResponse);
+    setCurrentBotMessageText("");
+    botReply.message = botResponse;
+
     setSuggestions([]);
-    // ... your implementation to send the message ...
+
   };
 
   const sendPromptMessageWithContext = async (message) => {
@@ -1576,6 +1609,7 @@ const updateTextareaHeight = () => {
 
     setCurrentMessage(botReply);
     setContextDefault(messages, botReply);
+    setCurrentBotMessageText("");
 
     const botResponse = await BotFunctions.getBotReply(input, currentMessage, messages, pdfs, settings['Use Api'], updateBotMessage);
     console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
@@ -1585,20 +1619,6 @@ const updateTextareaHeight = () => {
     setCurrentBotMessageText("");
     botReply.message = botResponse;
 
-
-    
-    
-
-    
-
-
-    
-
-    // Set the user's message as the current message
-
-    
-
-    
     // console.log(pdfs);
     // console.log("**********************************************************");
     setSuggestions([]);
