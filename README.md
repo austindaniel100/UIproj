@@ -166,3 +166,55 @@ The application now includes a sophisticated PDF interaction feature, enabling u
 - **PDF Page Selection**: 
   - Click and drag to select multiple pages.
   - Ctrl + click and drag to select or deselect individual pages.
+
+
+
+
+## Prompt Popup Component
+
+The Prompt Popup component is a versatile addition to the chatbot UI, designed to enhance user interaction through customizable prompts. This feature allows users to efficiently manage and utilize various prompts tailored to their specific needs.
+
+### Accessing the Prompt Popup
+
+- **Trigger Command:**
+  - To open the Prompt Popup, type `!prompt` in the chat interface. This command activates the component, bringing up the user interface for prompt management.
+
+### Features and Functionalities
+
+- **Custom Prompt Creation and Editing:**
+  - Users can create new prompts or edit existing ones. Each prompt consists of a name and content.
+  - The content can include placeholders for parameters, denoted by curly braces `{}`, which dynamically generate input fields.
+
+- **Dynamic Parameter Inputs:**
+  - When parameters are included in a prompt, the interface automatically generates corresponding text boxes for each parameter.
+  - Users can input specific values in these boxes, customizing the prompt before sending it to the chatbot.
+
+- **Intuitive Navigation:**
+  - The component supports keyboard navigation. Users can cycle through input fields, buttons, and other interactive elements using the Tab key.
+
+- **Real-Time Interaction:**
+  - As parameters are filled in, the prompt content updates in real-time, reflecting the changes immediately.
+  - This feature allows users to see how their input affects the prompt before sending it.
+
+- **Prompt Management:**
+  - A list of saved prompts is displayed, which users can filter by name or content.
+  - Prompts can be sorted alphabetically or by recency, aiding in quick retrieval.
+
+- **Sending Customized Prompts:**
+  - After customizing a prompt, users can send it directly to the chatbot.
+  - The option to include or exclude additional context with the prompt is available, catering to different interaction needs.
+
+- **Saving and Organizing Prompts:**
+  - New prompts can be saved for future use.
+  - Users have the option to overwrite existing prompts if they need to update them.
+
+### User Experience Enhancements
+
+- **Search Functionality:**
+  - Users can quickly find specific prompts using the search function, which filters prompts based on user input.
+  
+- **User-Friendly Interface:**
+  - The design is focused on ease of use, with clear labels and responsive inputs.
+  - Hover effects on list items improve visual feedback and navigation.
+
+This component significantly streamlines the process of customizing interactions with the chatbot, especially for users who frequently engage with complex or specific queries. It not only enhances the flexibility of the chatbot but also adds a layer of personalization to the user experience.
