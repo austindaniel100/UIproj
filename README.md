@@ -1,4 +1,4 @@
-todo: prompts, save/load context, contextual sidebar, internet search
+todo: save/load context, contextual sidebar, internet search
 more chat commands: toggle, prompt, pdfcontext, clear context
 # Chatbot UI
 ![Screenshot](screen.PNG)
@@ -223,5 +223,5 @@ This component significantly streamlines the process of customizing interactions
 # Prompt popup view
 ![Prompt popup view default](screen3.PNG)
 
-# Prompt popup view
+# Prompt popup view example
 ![Prompt popup view example](screen4.PNG)
