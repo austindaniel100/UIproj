@@ -100,34 +100,26 @@ const generateConversationLists = (currentMessage, messagesTree) => {
   
 
 
-
-const getBotReply = async (input, currentMessage, messagesTree, pdfs, useApi) => {
-    console.log("PDFS: ", pdfs);
-    console.log("SDHFSDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
-
-    const pdfsString = await compilePdfContext(pdfs);
-    // const pdfsString = ""
-
-    const conversationHistory = getConversationHistory(currentMessage, messagesTree);
-    const fullPrompt = "#PDFS: " + pdfsString + "\n#Conversation: " + conversationHistory + "\n#user: " + input + "\nbot: ";
-    console.log("\n\nFULL")
-    console.log(fullPrompt);
-
+  const callApi = async (fullPrompt, useApi, updateBotMessage) => {
+    console.log("\n\n\n\n\n\nCALLING API\n\n\n\n\n\n\n");
+    console.log("fullPrompt: ", fullPrompt);
     try {
       console.log("OK DOING IT NOW");
         if (!useApi) {
+            console.log("sadfhadsghd43");
             throw new Error("API usage is turned off");
         }
-        console.log("1");
+        console.log("sadfhadsghd432");
         
         const resp = await fetch('https://api.promptperfect.jina.ai/RlYg9Ir63bt7Sr1w1b34', {
-        headers: {
-          'x-api-key': `token ${YOUR_GENERATED_SECRET}`,
-          'content-type': 'application/json'
-        }, 
-        body: JSON.stringify({"parameters": {"prompt":fullPrompt}}),
-        method: 'POST'
-      });
+          headers: {
+            'x-api-key': `token ${YOUR_GENERATED_SECRET}`,
+            'content-type': 'application/json'
+          }, 
+          body: JSON.stringify({"parameters": {"prompt":fullPrompt}}),
+          method: 'POST'
+        });
+
         console.log("1");
 
         if (!resp.ok) {
@@ -153,11 +145,13 @@ const getBotReply = async (input, currentMessage, messagesTree, pdfs, useApi) =>
 
                 events.forEach(event => {
                     const data = event.replace(/data: /g, '');
-                    console.log(data);
+                    // console.log(data);
 
                     if (data) {
                         // For now, just append the data. Adjust this if needed.
                         fullResponse += data;
+          
+                        updateBotMessage(fullResponse);
                     }
                 });
             }
@@ -169,9 +163,49 @@ const getBotReply = async (input, currentMessage, messagesTree, pdfs, useApi) =>
 
     } catch (error) {
         console.error("failed to fetch bot reply: ", error);
+        updateBotMessage("API call failed or is not turned on.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1");
         return "API call failed or is not turned on.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1";
     }
+  };
+
+
+
+const getBotReply = async (input, currentMessage, messagesTree, pdfs, useApi, updateBotMessage, useContext = true) => {
+    console.log("INPUT: ", input);
+    console.log("PDFS: ", pdfs);
+    console.log("SDHFSDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD");
+    let fullPrompt = "";
+    console.log(useContext);
+    if (useContext) {
+      const pdfsString = await compilePdfContext(pdfs);
+      console.log(pdfsString);
+      // const pdfsString = ""
+
+      const conversationHistory = getConversationHistory(currentMessage, messagesTree);
+      console.log(conversationHistory);
+      if (pdfsString !== "") {
+        console.log("HOW????");
+        fullPrompt = fullPrompt +  "#PDFS: " + pdfsString
+      }
+      if (conversationHistory !== "") {
+        console.log("HOW????!!");
+        fullPrompt = fullPrompt +  "#Conversation History: " + conversationHistory
+      }
+      fullPrompt = fullPrompt + "\n#user: " + input + "\nbot: ";
+      console.log("\n\nFULL")
+      console.log(fullPrompt);
+    }
+
+    return callApi(fullPrompt, useApi, updateBotMessage);
+
+
+    
 };
 
 
-export default getBotReply;
+
+
+export default {
+  getBotReply,
+  callApi
+};

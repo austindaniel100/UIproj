@@ -78,16 +78,22 @@ const defaultMessages = [
   MessageNode(null, null, "Hi there! I'm a user.", "user")
 ];
 
-const ChatComponent = ({ currentMessage, increment }) => {
+const ChatComponent = ({ currentMessage, increment, currentBotText, currentBotMessage, wide}) => {
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100); // Delay scrolling to allow the DOM to update
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [currentMessage]);
+
+  // useEffect(() => {
+    // console.log("currentBotMessageText: ", currentBotText);
+  // }, [currentBotText]);
 
   let messagesRoot = currentMessage;
   while (messagesRoot && messagesRoot.parent) {
@@ -106,7 +112,7 @@ const ChatComponent = ({ currentMessage, increment }) => {
     paddingLeft: '10px' // Adjust this padding to match the padding of the message bubbles
   };
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', width: '100%'}}>
+    <div style={{ display: 'flex', flexDirection: 'row', position: 'relative'}}>
       {isOtherMessagesListArray && (
         <div className="other-messages-column" style={{ flexShrink: 0, width: '300px' }}>
           <h2 style={{ textAlign: 'left', margin: 10 }}>In-Context</h2>
@@ -115,6 +121,8 @@ const ChatComponent = ({ currentMessage, increment }) => {
               key={messageNode.id}
               messageNode={messageNode}
               isCurrentMessage={false}
+              currentBotMessageText={currentBotText}
+              isCurrentBotMessage={currentBotMessage && messageNode.id === currentBotMessage.id}
             />
           ))}
         </div>
@@ -123,11 +131,14 @@ const ChatComponent = ({ currentMessage, increment }) => {
         <h2 style={titleStyle}>Conversation</h2>
         <div style={{ width: '100%' }}>
           {isConversationListArray && conversationList.map((messageNode) => (
-            <div style={{ width: '100%' }}>
+            <div style={{ width: '100%', flexWrap: 'wrap'}}>
               <MessageComponent
                 key={messageNode.id}
                 messageNode={messageNode}
                 isCurrentMessage={currentMessage && messageNode.id === currentMessage.id}
+                currentBotMessageText={currentBotText} // Added this line
+                isCurrentBotMessage={currentBotMessage && messageNode.id === currentBotMessage.id}
+                wide={wide}
               />
             </div>
           ))}

@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Button, TextareaAutosize } from "@mui/material";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { solarizedlight } from "react-syntax-highlighter/dist/esm/styles/prism";
-import getBotReply from "./botReplyHandler";
+import BotFunctions from "./botReplyHandler";
 import ChatComponent from "./ChatComponent";
 import PdfViewerComponent from "./PdfComponent";
 import SettingsPopup from './SettingsPopup'; // Adjust the path as per your file structure
@@ -84,9 +84,31 @@ const textareaStyles = {
   },
 };
 
+const customScrollbarStyles = {
+  '&::-webkit-scrollbar': {
+    width: '8px',
+    height: '8px',
+  },
+  '&::-webkit-scrollbar-track': {
+    backgroundColor: '#2C2F33',
+    borderRadius: '10px',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    backgroundColor: '#484848',
+    borderRadius: '10px',
+    border: '2px solid #2C2F33',
+  },
+  '&::-webkit-scrollbar-thumb:hover': {
+    backgroundColor: '#606060',
+  },
+};
+
+// Apply these styles to the scrollable elements like the prompt list and text area
+
+
 const buttonStyles = {
-  background: "#8A2BE2", // Purple shade
-  color: "white",
+  background: "#29274C", // Very dark purple, almost black
+  color: "#ccc", // Light grey text color
   padding: "8px 16px",
   border: "none",
   borderRadius: "4px",
@@ -97,10 +119,20 @@ const buttonStyles = {
   fontWeight: "500",
   letterSpacing: "0.5px",
   textDecoration: "none",
-  display: "inline-block",
+  display: "inline-block", // Changed to flex
+  justifyContent: "center", // Center content horizontally
+  alignItems: "center", // Center content vertically
   margin: "10px",
-  textTransform: 'none'
+  textTransform: 'none',
+  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  boxSizing: 'border-box',
+  // Optional: uniform width for all buttons
+  width: '100px', // Adjust as needed
 };
+
+
+
+
 
 const popupStyle = {
   position: 'fixed',
@@ -233,7 +265,13 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
       return a.parent === b.parent ? 1.5 : 2; // Adjust the values as needed
     });
 
+    if (!messages || !Array.isArray(messages.children)) {
+      console.error('Invalid messages structure:', messages);
+      return; // Early return to prevent further execution
+    }
     const root = d3.hierarchy(messages);
+    
+
     treeLayout(root);
 
     const nodes = root.descendants().slice(1);
@@ -275,13 +313,13 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
       .attr("x", (d) => d.x - 50)
       .attr("y", (d) => d.y - 20)
       .attr("filter", (d) => (d.data.inContext ? "url(#glow)" : "none")) // Apply the glow filter for nodes in context
-    console.log(current);
+    // console.log(current);
 
     g.selectAll(".label")
       .data(nodes)
       .join("text")
       .attr("class", "label")
-      .text((d) => d.data.message.substring(0, 10) + "...")
+      .text(d => typeof d.data.message === 'string' ? d.data.message.substring(0, 10) + "..." : "...")
       .attr("x", (d) => d.x)
       .attr("y", (d) => d.y + 5)
       .attr("fill", "#d1d1d1") // Set text color to a softer light gray
@@ -347,6 +385,7 @@ g.selectAll(".click-capture")
  * 
  */
   const handleFocusClick = () => {
+    
     const svg = d3.select(svgRef.current);
 
     const xMin = d3.min(computedNodes, (d) => d.x);
@@ -455,7 +494,7 @@ g.selectAll(".click-capture")
               result="thicken"
             />
             <feGaussianBlur in="thicken" stdDeviation="3" result="blurred" />
-            <feFlood flood-color="green" result="greenColor" />
+            <feFlood floodColor="green" result="greenColor" />
             <feComposite in="greenColor" in2="blurred" operator="in" />
             <feComposite in="SourceGraphic" />
           </filter>
@@ -465,6 +504,414 @@ g.selectAll(".click-capture")
     </div>
   );
 }
+
+
+
+const PromptPopup = React.forwardRef(({ onClose, onSend, onSendWithContext, prompts = [], setPrompts }, ref) => {
+  const [inputValue, setInputValue] = useState("");
+  const [promptName, setPromptName] = useState("");
+  const [selectedPrompt, setSelectedPrompt] = useState(null);
+
+  const [parameters, setParameters] = useState({});
+  const [parsedParameters, setParsedParameters] = useState([]);
+
+  const [searchInput, setSearchInput] = useState("");
+
+  const [hoverIndex, setHoverIndex] = useState(null); // State to track hovered item
+
+  const [sortByRecency, setSortByRecency] = useState(false); // false for alphabetical, true for recency
+
+
+const handleSearchChange = (event) => {
+  const searchText = event.target.value.toLowerCase();
+  setSearchInput(searchText);
+
+  const filteredPrompts = prompts
+    .filter(p => p.name.toLowerCase().includes(searchText) || p.content.toLowerCase().includes(searchText))
+    .sort((a, b) => {
+      // Prioritize matches by name over matches by content
+      const nameMatchA = a.name.toLowerCase().includes(searchText);
+      const nameMatchB = b.name.toLowerCase().includes(searchText);
+      if (nameMatchA && !nameMatchB) return -1;
+      if (!nameMatchA && nameMatchB) return 1;
+
+      // If both are name matches or both are content matches, then sort alphabetically
+      return a.name.localeCompare(b.name);
+    });
+
+  // Update the component's state to display these filtered prompts
+  setDisplayedPrompts(filteredPrompts);
+};
+
+const [displayedPrompts, setDisplayedPrompts] = useState(prompts);
+
+  const parseParameters = (input) => {
+    const paramRegex = /{(\w+)}/g; // Regex to identify parameters
+    let match;
+    let newParameters = [];
+    while ((match = paramRegex.exec(input)) !== null) {
+      newParameters.push(match[1]);
+    }
+    setParsedParameters(newParameters);
+  };
+
+  const handleInputChange = (event) => {
+    setInputValue(event.target.value);
+    parseParameters(event.target.value); 
+  };
+
+  const handleNameChange = (event) => {
+    setPromptName(event.target.value);
+  };
+
+  const handleParameterChange = (paramName, value) => {
+    setParameters((prevParams) => ({
+      ...prevParams,
+      [paramName]: value,
+    }));
+  };
+
+  const handlePromptClick = (prompt) => {
+    setPromptName(prompt.name);
+    setInputValue(prompt.content);
+    setParameters(prompt.parameters || {});
+    parseParameters(prompt.content); // Parse parameters when a prompt is selected
+  };
+
+  const handleSavePromptWithParameters = () => {
+    const existingPrompt = prompts.find(p => p.name === promptName);
+    if (existingPrompt) {
+      setOverwritePromptName(promptName);
+      setShowConfirmOverwrite(true);
+      return;
+    }
+    saveNewPrompt();
+  };
+
+  const [showConfirmOverwrite, setShowConfirmOverwrite] = useState(false);
+  const [overwritePromptName, setOverwritePromptName] = useState("");
+
+  
+  useEffect(() => {
+    let sortedPrompts = prompts.filter(p => 
+      p.name.toLowerCase().includes(searchInput) || 
+      p.content.toLowerCase().includes(searchInput)
+    );
+  
+    if (sortByRecency) {
+      // Sort by recency - assuming prompts have a timestamp or similar property
+      sortedPrompts.sort((a, b) => b.timestamp - a.timestamp);
+    } else {
+      // Sort alphabetically
+      sortedPrompts.sort((a, b) => a.name.localeCompare(b.name));
+    }
+  
+    setDisplayedPrompts(sortedPrompts);
+  }, [prompts, searchInput, sortByRecency]); // Depend on sortByRecency as well
+  
+
+  const saveNewPrompt = () => {
+    const newPrompt = { name: promptName, content: inputValue, parameters };
+    setPrompts(prevPrompts => [...prevPrompts, newPrompt]);
+    // Removed resetForm call to maintain the current state of the form
+  };
+
+  const handleOverwriteConfirmation = (overwrite) => {
+    if (overwrite) {
+      const updatedPrompts = prompts.map(p => 
+        p.name === overwritePromptName ? { ...p, content: inputValue, parameters } : p
+      );
+      setPrompts(updatedPrompts);
+    }
+    setShowConfirmOverwrite(false);
+    // resetForm();
+  };
+  const resetForm = () => {
+    setPromptName("");
+    setInputValue("");
+    setParameters({});
+    setOverwritePromptName("");
+  };
+
+  const titleStyle = {
+    fontSize: '18px',
+    fontWeight: 'bold',
+    marginBottom: '10px',
+    color: '#2c3e50', // Dark color for title text
+  };
+
+  const subtitleStyle = {
+    fontSize: '14px',
+    fontWeight: 'bold',
+    marginTop: '10px',
+    marginBottom: '5px',
+    color: '#34495e', // Slightly lighter color for subtitles
+  };
+
+  const toggleButtonStyle = {
+    cursor: 'pointer',
+    padding: '5px 10px',
+    marginLeft: '10px',
+    backgroundColor: sortByRecency ? '#333' : '#333', // Lighter grey when active
+    color: '#ccc',
+    border: 'none',
+    borderRadius: '5px',
+    outline: 'none',
+    transition: 'background-color 0.3s',
+  };
+  
+  const toggleButtonTextStyle = {
+    margin: 0,
+    paddingLeft: '5px',
+    paddingRight: '5px',
+  };
+  
+  
+
+
+  const promptItemStyle = (prompt) => ({
+    padding: "10px 15px",
+    cursor: "pointer",
+    backgroundColor: selectedPrompt === prompt.name ? "#484848" : "#333",
+    color: "#ccc",
+    borderBottom: "1px solid #555",
+    '&:hover': {
+      backgroundColor: '#484848',
+    }
+  });
+
+  const popupContainerStyle = {
+    ...popupStyle,
+    display: "flex",
+    flexDirection: "row",
+    width: '1000px', // Fixed width for the popup
+    maxWidth: '100%', // Ensure it doesn't exceed the screen width
+    // Other styling as needed
+  };
+
+  const promptListStyle = {
+    flex: 1,
+    overflowY: 'auto',
+    maxHeight: '400px',
+    borderRight: '1px solid #555',
+    padding: '10px',
+    backgroundColor: '#2C2F33', // Dark background for contrast
+    color: '#ecf0f1', // Light text for readability
+  };
+
+  const detailSectionStyle = {
+    flex: 2,
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    backgroundColor: '#2C2F33', // Light background for the detail section
+  };
+
+  const rightColumnStyle = {
+    backgroundColor: "#23282d", // Slightly darker background
+  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // Subtle drop shadow
+  borderRadius: "4px", // Optional, but might look good with the shadow
+  border: "none", // Remove the border since we're using shadows
+    flex: 2,
+    padding: '20px',
+    backgroundColor: '#212121', // dark background for contrast
+    display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'flex-start', // aligns children to the top of the container
+  };
+  
+  const buttonsContainerStyle = {
+    display: 'flex',
+    justifyContent: 'space-between', // Evenly spaces buttons
+    marginTop: '20px',
+  };
+
+  
+
+  const listItemStyle = (index) => ({
+    backgroundColor: hoverIndex === index ? "#484848" : "#121212",
+    color: '#ccc',
+    padding: '10px 15px',
+    cursor: 'pointer',
+    transition: 'background-color 0.3s',
+  });
+
+const listContainerStyle = {
+    overflowY: 'auto', // Make scrollable
+    maxHeight: '400px', // Fixed height for scroll
+    padding: '10px',
+    backgroundColor: "#212121",
+  color: '#ecf0f1', // Light text color for readability
+    display: 'flex',
+    flexDirection: 'column', // Ensure elements are stacked verticallyflexDirection: 'column',
+    justifyContent: 'flex-start', // aligns children to the top of the container
+    // other necessary styles
+  };
+
+  const scrollbarStyles = `
+  .dark-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .dark-scrollbar::-webkit-scrollbar-thumb {
+    background: #454545;
+    border-radius: 5px;
+  }
+  .dark-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+  .dark-scrollbar::-webkit-scrollbar-track {
+    background: #333;
+    border-radius: 5px;
+  }
+  .dark-scrollbar {
+    scrollbar-color: #444 #333;
+    scrollbar-width: thin;
+  }
+`;
+const searchInputStyle = {
+  padding: '10px 15px',
+  width: 'calc(100%)', // Adjust width to account for padding and prevent overflow
+  boxSizing: 'border-box', // Include padding and border in the element's width
+  marginBottom: '0', // Remove any bottom margin
+  border: 'none', // Remove borders
+  borderBottom: '1px solid #555', // Add a bottom border to separate from the list
+  backgroundColor: "#292b2b",
+  color: '#ccc',
+  fontSize: '16px',
+  zIndex: 1000,
+};
+
+
+
+  return (
+    <div ref={ref} style={popupContainerStyle}>
+      <style>{scrollbarStyles}</style>
+      <div style={rightColumnStyle} className="dark-scrollbar">
+        <div style={titleStyle}>Prompts</div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+  <input
+    type="text"
+    placeholder="Search..."
+    style={searchInputStyle}
+    onChange={handleSearchChange} 
+  />
+  <button
+    style={toggleButtonStyle}
+    onClick={() => setSortByRecency(!sortByRecency)}
+  >
+    <span style={toggleButtonTextStyle}>
+      {sortByRecency ? 'Alphabetical' : 'Recency'}
+    </span>
+  </button>
+</div>
+        <style>{scrollbarStyles}</style> {/* Include this if not already present */}
+        
+        <div style={listContainerStyle} className="dark-scrollbar">
+        
+
+  {displayedPrompts.map((prompt, index) => {
+  // Extract and format parameters
+  const params = prompt.parameters ? Object.keys(prompt.parameters) : [];
+  const paramsString = params.length > 0 ? `(${params.join(', ')})` : '';
+
+  // Combine name and parameters for display
+  const displayName = `${prompt.name}${paramsString}`;
+
+  return (
+        <div 
+        key={index}
+        style={listItemStyle(index)}
+        onMouseEnter={() => setHoverIndex(index)}
+        onMouseLeave={() => setHoverIndex(null)}
+        onClick={() => handlePromptClick(prompt)}
+      >
+            {displayName}
+        </div>);}
+    )}
+</div>
+
+      </div>
+      <div style={{ flex: 2, padding: '20px' }}>
+        <div style={titleStyle}>Configuration</div>
+        <div style={subtitleStyle}>Name</div>
+        <input
+          type="text"
+          placeholder="Prompt Name"
+          value={promptName}
+          onChange={handleNameChange}
+          style={{ ...textareaStyles, marginBottom: '10px' }}
+        />
+        <style>{scrollbarStyles}</style>
+        <div style={subtitleStyle}>Prompt</div>
+        <TextareaAutosize
+          minRows={3}
+          maxRows={5}
+          placeholder="Prompt Content"
+          className="dark-scrollbar"
+          style={{... textareaStyles, width: '85%'}}
+          value={inputValue}
+          onChange={handleInputChange}
+        />
+        {parsedParameters.map((param, index) => (
+          <div key={index}>
+            <label>{param}: </label>
+            <input
+              type="text"
+              value={parameters[param] || ""}
+              onChange={(e) => handleParameterChange(param, e.target.value)}
+              style={textareaStyles}
+            />
+          </div>
+        ))}
+        <div style={buttonsContainerStyle}>
+    <Button onClick={handleSavePromptWithParameters} style={buttonStyles}>
+      Save Prompt
+    </Button>
+    <Button onClick={() => onSend(inputValue)} style={buttonStyles}>
+      Send
+    </Button>
+    <Button onClick={() => onSendWithContext(inputValue)} style={buttonStyles}>
+      Send with Context
+    </Button>
+    <Button onClick={onClose} style={buttonStyles}>
+      Close
+    </Button>
+  </div>
+      </div>
+      {showConfirmOverwrite && (
+        <div style={confirmOverwriteStyle}>
+          <p>Do you want to overwrite this prompt?</p>
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <Button onClick={() => handleOverwriteConfirmation(true)} autoFocus style={buttonStyles}>
+              Yes
+            </Button>
+            <Button onClick={() => handleOverwriteConfirmation(false)} style={buttonStyles}>
+              No
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+  
+});
+
+const confirmOverwriteStyle = {
+  // Style for the confirm overwrite popup
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  backgroundColor: "#212121",
+  padding: "20px",
+  borderRadius: "8px",
+  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+  zIndex: 1000,
+  // Add more styling as needed
+};
+
 
 
 /**
@@ -506,6 +953,14 @@ g.selectAll(".click-capture")
  */
 
 const Chatbot = () => {
+
+  const [prompts, setPrompts] = useState([]); // State to store user prompts
+
+  // Load prompts from a file or initialize an empty array
+  useEffect(() => {
+    // Fetch prompts from a file or other source
+    // setPrompts(fetchedPrompts);
+  }, []);
   const [lockSettings, setLockSettings] = useState(false);
 
   const [settings, setSettings] = useState({
@@ -613,6 +1068,87 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
     };
   }, [lockSettings, showSettings]);
 
+  const [showPromptPopup, setShowPromptPopup] = useState(false);
+  const promptPopupRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (promptPopupRef.current && !promptPopupRef.current.contains(event.target)) {
+        setShowPromptPopup(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handlePromptCommand = () => {
+    setShowPromptPopup(true);
+  };
+
+  const sendPromptMessage = async (message) => {
+    console.log(message);
+    // Handle sending the message
+    setShowPromptPopup(false);
+    
+    const userMessage = MessageNode(
+      currentMessage,
+      incrementMessageCount,
+      message,
+      "user"
+    );
+
+    // If there's a current message, add the new user message as its child.
+    if (currentMessage) {
+      if (!currentMessage.children) {
+        currentMessage.children = [];
+      }
+      currentMessage.children.push(userMessage);
+    } else {
+      // If no current message, add directly to the root's children.
+      setMessages((prevMessages) => ({
+        ...prevMessages,
+        children: [...prevMessages.children, userMessage],
+      }));
+    }
+    setCurrentMessage(userMessage);
+    setInput("");
+
+    const botResponse = await BotFunctions.callApi(message, settings['Use Api'], updateBotMessage)
+    console.log(botResponse);
+
+    const botReply = MessageNode(
+      userMessage,
+      incrementMessageCount,
+      botResponse,
+      "bot"
+    );
+    userMessage.children = [botReply];
+
+
+
+    // Set the user's message as the current message
+
+    setCurrentMessage(botReply);
+
+    setContextDefault(messages, botReply);
+    // console.log(pdfs);
+    // console.log("**********************************************************");
+    setSuggestions([]);
+    // ... your implementation to send the message ...
+  };
+
+  const sendPromptMessageWithContext = async (message) => {
+    // Handle sending the message with context
+    console.log(message);
+    console.log("SDHFDSHUFOIHSDJL:FHSDJKFGHSELIUEFGKJSHDFKJl");
+    setShowPromptPopup(false);
+    sendMessage(message);
+    // ... your implementation to send the message with context ...
+  };
+
   const handleSettingsCommand = () => {
     setShowSettings(!showSettings); // Toggle the visibility of the settings popup
   };
@@ -621,13 +1157,15 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
   const commandHandlers = {
     "!help": handleHelpCommand,
     "!settings": handleSettingsCommand,
+    "!prompt": handlePromptCommand,
     // Add more mappings as needed
   };
   
 
   const chatCommands = [
     { command: "!help", description: "Show help information" },
-    { command: "!settings", description: "Show settings"}
+    { command: "!settings", description: "Show settings"},
+    { command: "!prompt", description: "open prompt popup"}
     // Add more commands as needed
   ];
   
@@ -665,6 +1203,10 @@ const updateTextareaHeight = () => {
 
 
 
+  
+
+
+
 
   const [messageCount, setMessageCount] = useState(0);
   const incrementMessageCount = () => {
@@ -686,6 +1228,37 @@ const updateTextareaHeight = () => {
     message: "",
     children: [],
   });
+
+  const [currentBotMessageText, setCurrentBotMessageText] = useState(null);
+  const [currentBotMessage, setCurrentBotMessage] = useState(null);
+
+  const updateBotMessage = (newData) => {
+    // console.log("DATA: ", newData)
+    setCurrentBotMessageText(newData);
+  };
+
+  // useEffect(() => {
+  //   // Function to handle new streamed data
+  //   const handleStreamedData = (newData) => {
+  //     currentBotMessage.message += newData;
+  //   };
+
+  //   // Start listening to the stream
+  //   const stream = startYourStream(); // Replace with your actual stream initiation
+  //   stream.on('data', handleStreamedData);
+
+  //   // Handle stream closure
+  //   stream.on('end', () => {
+  //     console.log("Stream ended");
+  //     // Perform any cleanup or final actions here
+  //   });
+
+  //   // Cleanup function
+  //   return () => {
+  //     stream.off('data', handleStreamedData);
+  //     stream.off('end');
+  //   };
+  // }, []); // Empty dependency array to run only once on mount
 
   const messagesRef = useRef(null);
   const messageRefs = useRef([]);
@@ -941,27 +1514,38 @@ const updateTextareaHeight = () => {
 
   }
 
-  const sendMessage = async () => {
+  const sendMessage = async (message = "") => {
+    console.log("message: ", message);
     
-    if (input === "" || input.trim() === "") return;
+    if ((input === "" || input.trim() === "") && message === "") return;
 
+    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
+
+    
     const parts = input.split(' ');
     const command = parts[0];
     const rest = parts.slice(1).join(' ');
     const args = rest.split('|').map(arg => arg.trim());
 
+    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
+
     if (commandHandlers[command]) {
       console.log("args: ", args);
       sendCommand(command, args);
       setInput(""); // Clear the input field
+      
       return; // Return early
     }
+
+    const p = message === "" ? input : message;
+
     const userMessage = MessageNode(
       currentMessage,
       incrementMessageCount,
-      input,
+      p,
       "user"
     );
+    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
 
     // If there's a current message, add the new user message as its child.
     if (currentMessage) {
@@ -979,22 +1563,42 @@ const updateTextareaHeight = () => {
     setCurrentMessage(userMessage);
     setInput("");
 
-    const botResponse = await getBotReply(input, currentMessage, messages, pdfs, settings['Use Api']);
-
-    console.log(botResponse);
     const botReply = MessageNode(
       userMessage,
       incrementMessageCount,
-      botResponse,
+      " ",
       "bot"
     );
+    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
     userMessage.children = [botReply];
+
+    setCurrentBotMessage(botReply);
+
+    setCurrentMessage(botReply);
+    setContextDefault(messages, botReply);
+
+    const botResponse = await BotFunctions.getBotReply(input, currentMessage, messages, pdfs, settings['Use Api'], updateBotMessage);
+    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
+    
+    console.log("______________________________________________")
+    console.log(botResponse);
+    setCurrentBotMessageText("");
+    botReply.message = botResponse;
+
+
+    
+    
+
+    
+
+
+    
 
     // Set the user's message as the current message
 
-    setCurrentMessage(botReply);
+    
 
-    setContextDefault(messages, botReply);
+    
     // console.log(pdfs);
     // console.log("**********************************************************");
     setSuggestions([]);
@@ -1167,6 +1771,16 @@ const miniViewPdfViewerContainerStyle = {
                 }
             `}
       </style>
+      {showPromptPopup && (
+        <PromptPopup
+          ref={promptPopupRef}
+          prompts={prompts}
+      setPrompts={setPrompts}
+          onSend={sendPromptMessage}
+          onSendWithContext={sendPromptMessageWithContext}
+          onClose={() => setShowPromptPopup(false)}
+        />
+      )}
       {!lockSettings && showSettings && (
         <SettingsPopup
           ref={settingsRef}
@@ -1212,83 +1826,87 @@ const miniViewPdfViewerContainerStyle = {
             }}
           >
             <div
-      className="dark-scrollbar"
-      style={{
-        flex: 3, // Adjust the flex value
+                  className="dark-scrollbar"
+                  style={{
+                    flex: 2, // Adjust the flex value
+                    
         marginRight: "2%",
-        paddingRight: "1%",
-        overflowY: "auto",
-        paddingBottom: "3%",
-      }}
-    >
-              <ChatComponent currentMessage={currentMessage} increment = {incrementMessageCount} />
-
-              <div
-                style={{
-                  position: "fixed",
-                  bottom: "5%",
-                  left: "10%",
-                  width: "80vw",
-                  display: "flex",
-                  justifyContent: lockSettings ? 'space-between' : 'center',
-                  alignItems: "flex-end",
-                  flexDirection: 'row',
-                }}
-              >
-                {suggestions.length > 0 && <PredictiveView suggestions={suggestions} />}
-                <TextareaAutosize
-                  ref={textareaRef}
-                  minRows={1}
-                  maxRows={10}
-                  style={{...textareaStyles, marginTop: suggestions.length > 0 ? '210px' : '10px'}}
-                  value={input}
-                  onChange={handleInputChange}
-                  onKeyDown={handleKeyDown}
-                  onInput={updateTextareaHeight}
-                />
-
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={sendMessage}
-                  style={buttonStyles}
+                    margin: "0 10px", // Add some margin
+                    overflowY: "auto",
+                    paddingBottom: "3%",
+                    
+                  }}
                 >
-                  Send
-                </Button>
-                {lockSettings && showSettings && (
-          <SettingsPopup
-            ref={settingsRef}
-            settings={settings}
-            updateSetting={updateSetting}
-            toggleLockSettings={toggleLockSettings}
-            isLocked={lockSettings}
-          />
-        )}
-              </div>
+              <ChatComponent currentMessage={currentMessage} currentBotMessage={currentBotMessage} increment = {incrementMessageCount} currentBotText={currentBotMessageText} wide={settings['Toggle Miniview'] || settings['Toggle PDF Viewer']}/>
+
+              
             </div>
 
             
 
-            <div style={miniViewPdfViewerContainerStyle}>
-            <div style={{flex: 1, overflowY: 'auto' }}>
-      {/* Pass the lifted state and handler as props to PdfViewerComponent */}
-      {settings['Toggle PDF Viewer'] && (
-      <div style={{...svgStyles, maxHeight: '21.375vh', overflowY: 'auto' }}>
-        <PdfViewerComponent pdfs={pdfs} setPdfs={setPdfs} onFileChange={onFileChange} />
-      </div>
-    )}
-    </div>
-    {settings['Toggle Miniview'] && (
-      <div style={{ flex: 3, overflowY: 'auto' }}>
-        <MiniView
-          messages={messages}
-          setCurrentMessage={setCurrentMessage}
-          increment={messageCount}
-          current={currentMessage}
-          setInc={incrementMessageCount}
-        />
-      </div>
-    )}
+            <div style={{... miniViewPdfViewerContainerStyle}} className="dark-scrollbar">
+              <div style={{flex: 1, overflowY: 'auto' }}>
+                {/* Pass the lifted state and handler as props to PdfViewerComponent */}
+                {settings['Toggle PDF Viewer'] && (
+                <div style={{...svgStyles, maxHeight: '21.375vh', overflowY: 'auto' }} className="dark-scrollbar">
+                  <PdfViewerComponent pdfs={pdfs} setPdfs={setPdfs} onFileChange={onFileChange} />
+                </div>
+              )}
+              </div>
+              {settings['Toggle Miniview'] && (
+              <div style={{ flex: 3}} className="dark-scrollbar">
+                <MiniView
+                  messages={messages}
+                  setCurrentMessage={setCurrentMessage}
+                  increment={messageCount}
+                  current={currentMessage}
+                  setInc={incrementMessageCount}
+                />
+              </div>
+              )}
+            </div>
+              <div
+                  style={{
+                    position: "fixed",
+                    bottom: "5%",
+                    left: "10%",
+                    width: "80vw",
+                    display: "flex",
+                    justifyContent: lockSettings ? 'space-between' : 'center',
+                    alignItems: "flex-end",
+                    flexDirection: 'row',
+                  }}
+                >
+                  {suggestions.length > 0 && <PredictiveView suggestions={suggestions} />}
+                  <TextareaAutosize
+                    ref={textareaRef}
+                    minRows={1}
+                    maxRows={10}
+                    style={{...textareaStyles, marginTop: suggestions.length > 0 ? '210px' : '10px'}}
+                    value={input}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyDown}
+                    onInput={updateTextareaHeight}
+                  />
+
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={sendMessage}
+                    style={buttonStyles}
+                  >
+                    Send
+                  </Button>
+                  {lockSettings && showSettings && (
+              <SettingsPopup
+                ref={settingsRef}
+                settings={settings}
+                updateSetting={updateSetting}
+                toggleLockSettings={toggleLockSettings}
+                isLocked={lockSettings}
+              />
+            )}
+              
             </div>
           </div>
         </div>

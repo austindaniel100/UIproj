@@ -94,16 +94,27 @@ const PdfViewerComponent = ({ pdfs, setPdfs }) => {
     };
 
     const customButtonStyle = {
-        backgroundColor: "#343434", // Choose a color that fits your theme
-        color: "#ccc",
-        border: "1px solid #444444",
-        borderRadius: "4px",
-        padding: "10px 15px",
-        cursor: "pointer",
-        fontSize: "16px",
-        display: "inline-block", // Change to inline-block
-        // Optionally, you can add some margins for spacing
-        margin: "10px"
+        background: "#29274C", // Very dark purple, almost black
+  color: "#ccc", // Light grey text color
+  padding: "8px 16px",
+  border: "none",
+  borderRadius: "4px",
+  cursor: "pointer",
+  transition: "all 0.2s",
+  boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
+  fontSize: "16px",
+  fontWeight: "500",
+  letterSpacing: "0.5px",
+  textDecoration: "none",
+  display: "inline-block", // Changed to flex
+  justifyContent: "center", // Center content horizontally
+  alignItems: "center", // Center content vertically
+  margin: "10px",
+  textTransform: 'none',
+  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  boxSizing: 'border-box',
+  // Optional: uniform width for all buttons
+  width: '100px', // Adjust as needed
     };
     
 

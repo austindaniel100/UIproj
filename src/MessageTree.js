@@ -93,7 +93,7 @@ function MessageTree() {
             .data(nodes)
             .enter().append("text")
             .attr("class", "label")
-            .text(d => d.data.message.substring(0, 10) + "...");
+            .text(d => typeof d.data.message === 'string' ? d.data.message.substring(0, 10) + "..." : "...");
         
         setComputedNodes(nodes);
 
