@@ -31,6 +31,13 @@
 
 The application will start running on `http://localhost:3000`, or another available port if `3000` is already in use.
 
+If you want local files to be saved, you must also run before attempting to save or load files.
+
+1. **Start the HTTP server**
+    ```bash
+    cd src
+    node server.js```
+
 
 ## Interacting with the Bot
 
