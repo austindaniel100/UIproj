@@ -1,5 +1,4 @@
-todo: contextual sidebar, internet search
-more chat commands: pdf select
+todo: contextual sidebar, internet search, pdf auto select
 # Chatbot UI
 ![Screenshot](screen.PNG)
 

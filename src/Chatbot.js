@@ -1585,7 +1585,33 @@ function getClosestPDFFileName(inputName, pdfNames) {
   return closestMatch;
 }
 
+function parsePageSelection(input) {
+  // Check if the input is empty
+  if (!input.trim()) {
+      return new Set(); // Return an empty set if no input is provided
+  }
+  const pageSelectionRegex = /\d+(-\d+)?/g;
+  const matches = input.match(pageSelectionRegex);
+  const pages = new Set();
 
+  if (matches) {
+      matches.forEach(match => {
+          if (match.includes('-')) {
+              const range = match.split('-').map(Number);
+              const start = range[0];
+              const end = range[1];
+
+              for (let i = start; i <= end; i++) {
+                  pages.add(i);
+              }
+          } else {
+              pages.add(Number(match));
+          }
+      });
+  }
+
+  return pages;
+}
 
   const handlePdfCommand = async (input = "") => {
     if (input === '') {
@@ -1634,6 +1660,29 @@ function getClosestPDFFileName(inputName, pdfNames) {
     } else if (closestCommand === 'select') {
       //set all page number selections that the user asks for.  use another callapinostream prompt to get the page numbers from a semantic user query.
       console.log("Selecting PDF")
+      const pdfNames = pdfs.map(pdf => pdf.fileName);
+      console.log("Select PDF: ", args[0], pdfNames);
+      if (args[0]) {
+          const closestPdf = getClosestPDFFileName(args[0], pdfNames);
+          if (!closestPdf) {
+              throw new Error('No matching pdf found');
+          }
+          console.log("Selecting PDF: ", closestPdf);
+          
+          const pageSelectionString = input.split(' ').slice(2).join(' '); // Extract everything after the command and filename
+          const selectedPages = parsePageSelection(pageSelectionString);
+          setPdfs(prevPdfs => prevPdfs.map(pdf => {
+            if (pdf.fileName === closestPdf) {
+                return { ...pdf, selectedPages: selectedPages }; // Deselect all pages
+            }
+            return pdf;
+        }));
+
+      } else {
+          console.log("Deselecting all PDFS: ");
+          setPdfs(prevPdfs => prevPdfs.map(pdf => ({ ...pdf, selectedPages: new Set() }))); // Deselect all pages
+          return;
+      }
 
     } else if (closestCommand === 'deselect') {
       //set all page number selections to false within the pdfs state variable for the selected pdf.  If no pdf is selected(no args) then deselect all pdfs
