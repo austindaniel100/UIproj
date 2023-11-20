@@ -131,7 +131,7 @@ The application now includes a sophisticated PDF interaction feature, enabling u
 ![PDF Page Selector Screenshot](pdfPopup.PNG)
 
 # PDF Page Selector Dark Pdfs
-![PDF Page Selector Screenshot](pdfPopup2.PNG)
+![PDF Page Selector Screenshot](pdfPopup2.png)
 
 
 
