@@ -447,13 +447,8 @@ g.selectAll(".click-capture")
   useEffect(() => {
     let timer; // Declare timer outside of the if block
 
-    if (increment < 3) {
-      timer = setTimeout(() => {
-        handleFocusClick();
-      }, 2000); // 3s delay
-    } else {
-      handleFocusClick();
-    }
+    handleFocusClick();
+
 
     return () => {
       if (timer) {
@@ -507,7 +502,7 @@ g.selectAll(".click-capture")
 
 
 
-const PromptPopup = React.forwardRef(({ onClose, onSend, onSendWithContext, prompts = [], setPrompts }, ref) => {
+const PromptPopup = React.forwardRef(({ onClose, onSend, onSendWithContext, prompts = [], setPrompts, savePromptsToServer }, ref) => {
   const [inputValue, setInputValue] = useState("");
   const [promptName, setPromptName] = useState("");
   const [selectedPrompt, setSelectedPrompt] = useState(null);
@@ -520,6 +515,24 @@ const PromptPopup = React.forwardRef(({ onClose, onSend, onSendWithContext, prom
   const [hoverIndex, setHoverIndex] = useState(null); // State to track hovered item
 
   const [sortByRecency, setSortByRecency] = useState(false); // false for alphabetical, true for recency
+
+  const [promptToDelete, setPromptToDelete] = useState(null);
+const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
+const confirmDelete = (confirm) => {
+  if (confirm) {
+    // Code to delete the prompt
+    setPrompts(prompts.filter(p => p.name !== promptToDelete.name));
+  }
+  setShowDeleteConfirmation(false);
+};
+
+
+const handleDeletePrompt = (prompt) => {
+  setPromptToDelete(prompt);
+  setShowDeleteConfirmation(true);
+  savePromptsToServer();
+};
 
   const handleMessageSend = () => {
     let finalMessage = inputValue;
@@ -643,6 +656,7 @@ const [displayedPrompts, setDisplayedPrompts] = useState(prompts);
   const saveNewPrompt = () => {
     const newPrompt = { name: promptName, content: inputValue, parameters };
     setPrompts(prevPrompts => [...prevPrompts, newPrompt]);
+    savePromptsToServer();
     // Removed resetForm call to maintain the current state of the form
   };
 
@@ -652,6 +666,7 @@ const [displayedPrompts, setDisplayedPrompts] = useState(prompts);
         p.name === overwritePromptName ? { ...p, content: inputValue, parameters } : p
       );
       setPrompts(updatedPrompts);
+      savePromptsToServer();
     }
     setShowConfirmOverwrite(false);
     // resetForm();
@@ -759,13 +774,25 @@ const [displayedPrompts, setDisplayedPrompts] = useState(prompts);
 
   
 
-  const listItemStyle = (index) => ({
-    backgroundColor: hoverIndex === index ? "#484848" : "#121212",
-    color: '#ccc',
-    padding: '10px 15px',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s',
-  });
+  // Modify listItemStyle to serve as a container style
+const listItemContainerStyle = (index) => ({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  backgroundColor: hoverIndex === index ? "#484848" : "#333",
+  padding: '10px 15px',
+  cursor: 'pointer',
+  borderBottom: "1px solid #555",
+});
+
+// Inline style for delete button, visibility controlled by hover
+const deleteButtonStyle = (index) => ({
+  display: hoverIndex === index ? 'block' : 'none',
+  cursor: 'pointer',
+  color: '#ccc',
+  marginLeft: '10px',
+});
+
 
 const listContainerStyle = {
     overflowY: 'auto', // Make scrollable
@@ -841,26 +868,38 @@ const searchInputStyle = {
         <div style={listContainerStyle} className="dark-scrollbar">
         
 
-  {displayedPrompts.map((prompt, index) => {
-  // Extract and format parameters
+        {displayedPrompts.map((prompt, index) => {
   const params = prompt.parameters ? Object.keys(prompt.parameters) : [];
   const paramsString = params.length > 0 ? `(${params.join(', ')})` : '';
-
-  // Combine name and parameters for display
   const displayName = `${prompt.name}${paramsString}`;
 
   return (
-        <div 
-        key={index}
-        style={listItemStyle(index)}
-        onMouseEnter={() => setHoverIndex(index)}
-        onMouseLeave={() => setHoverIndex(null)}
-        onClick={() => handlePromptClick(prompt)}
+    <div 
+      key={index}
+      style={listItemContainerStyle(index)}
+      onMouseEnter={() => setHoverIndex(index)}
+      onMouseLeave={() => setHoverIndex(null)}
+      onClick={() => handlePromptClick(prompt)}
+    >
+      <div>
+        {displayName}
+      </div>
+      <div
+        style={deleteButtonStyle(index)}
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent triggering prompt click
+          handleDeletePrompt(prompt);
+        }}
+        title="Delete this prompt"
       >
-            {displayName}
-        </div>);}
-    )}
-</div>
+        X
+      </div>
+    </div>
+  );
+})}
+
+
+        </div>
 
       </div>
       <div style={{ flex: 2, padding: '20px' }}>
@@ -923,6 +962,19 @@ const searchInputStyle = {
           </div>
         </div>
       )}
+      {showDeleteConfirmation && (
+  <div style={confirmDeleteStyle}>
+    <p>Are you sure you want to delete {promptToDelete.name} prompt?</p>
+    <div style={{ display: "flex", justifyContent: "center" }}>
+      <Button onClick={() => confirmDelete(true)} autoFocus style={buttonStyles}>
+        Yes
+      </Button>
+      <Button onClick={() => confirmDelete(false)} style={buttonStyles}>
+        No
+      </Button>
+    </div>
+  </div>
+)}
     </div>
   );
   
@@ -941,6 +993,11 @@ const confirmOverwriteStyle = {
   zIndex: 1000,
   // Add more styling as needed
 };
+
+const confirmDeleteStyle = {
+  ... confirmOverwriteStyle,
+};
+
 
 
 
@@ -985,19 +1042,52 @@ const confirmOverwriteStyle = {
 const Chatbot = () => {
 
   const [prompts, setPrompts] = useState([]); // State to store user prompts
+  const [currentContextName, setCurrentContextName] = useState("");
+
+
+  const savePromptsToServer = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/prompts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(prompts),
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      console.log('Prompts saved successfully');
+    } catch (error) {
+      console.error('Fetch error:', error);
+    }
+  };
+  
 
   // Load prompts from a file or initialize an empty array
   useEffect(() => {
-    // Fetch prompts from a file or other source
-    // setPrompts(fetchedPrompts);
+    const fetchPrompts = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/prompts');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setPrompts(data);
+      } catch (error) {
+        console.error('Fetch error:', error);
+      }
+    };
+  
+    fetchPrompts();
   }, []);
   const [lockSettings, setLockSettings] = useState(false);
 
   const [settings, setSettings] = useState({
     'Use Api': false,
     'Update Context on Send': true,
-    'Toggle Miniview': true,
-    'Toggle PDF Viewer': true,
+    'Miniview': true,
+    'PDF Viewer': true,
   });
 
   
@@ -1035,7 +1125,7 @@ const Chatbot = () => {
   ### Additional Features
   - **MiniView Focus**: Click the "Focus" button to center and zoom the MiniView on the tree of messages.
   - **Predictive Commands**: As the user types, suggested commands appear based on input. Users can select a command with Tab, Alt + Enter, or mouse click.
-  - **Settings Popup**: Access settings to toggle features like 'Use Api', 'Update Context on Send', 'Toggle MiniView', and 'Toggle PDF Viewer'.
+  - **Settings Popup**: Access settings to toggle features like 'Use Api', 'Update Context on Send', 'Miniview', and 'Toggle PDF Viewer'.
   
   ### PDF Interaction
   - **Uploading PDFs**: Users can upload PDF documents to interact with the chatbot contextually.
@@ -1185,12 +1275,269 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
   const handleSettingsCommand = () => {
     setShowSettings(!showSettings); // Toggle the visibility of the settings popup
   };
+
+  const handleSoloCommand = () => {
+    // Toggle the visibility of the other components
+    setShowSettings(false);
+    setShowPromptPopup(false);
+    setShowHelpPopup(false);
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      'Miniview': false, // Replace 'newValue' with the desired value
+      'PDF Viewer': false // Replace 'newValue' with the desired value
+    }));
+  };
+
+  const handleToggleCommand = (input) => {
+    console.log("SDFHSHDSF", input);
+    const settingsList = ['Lock Settings', 'Use Api', 'Miniview', 'PDF Viewer', 'Update Context on Send'];
+    let matchedSetting = null;
+
+    // First, try matching the input with the start of the first word of each setting
+    settingsList.forEach(setting => {
+      const firstWordRegex = new RegExp('^' + setting.split(' ')[0].toLowerCase(), 'i');
+      if (firstWordRegex.test(input)) {
+        if (!matchedSetting || setting.length < matchedSetting.length) {
+          matchedSetting = setting;
+        }
+      }
+    });
+  
+    // If no match found, try matching the input with the start of any word in each setting
+    if (!matchedSetting) {
+      settingsList.forEach(setting => {
+        const anyWordRegex = new RegExp('\\b' + input.toLowerCase(), 'i');
+        if (anyWordRegex.test(setting.toLowerCase())) {
+          if (!matchedSetting || setting.length < matchedSetting.length) {
+            matchedSetting = setting;
+          }
+        }
+      });
+    }
+  
+    if (matchedSetting) {
+      if (matchedSetting === 'Lock Settings') {
+        toggleLockSettings(!lockSettings);
+        return 'Settings locked';
+      }
+      // Toggle the matched setting
+      setSettings(prevSettings => ({
+        ...prevSettings,
+        [matchedSetting]: !prevSettings[matchedSetting]
+      }));
+      return `Toggled ${matchedSetting}`;
+    } else {
+      return 'No matching setting found';
+    }
+  };
+
+  const uploadPdf = async (pdf) => {
+    console.log("Uploading PDF", pdf)
+  
+    const response = await fetch('http://localhost:3001/api/uploadPdf', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ base64Pdf: pdf.file.split(',')[1], fileName: pdf.fileName }),
+  });
+  
+    if (!response.ok) {
+      throw new Error('Failed to upload PDF');
+    }
+  
+    return await response.json(); // Expecting a response with file reference
+  };
+  
+
+  const clearContext = async () => {
+    // First, save the current context if it has a name
+    if (currentContextName) {
+      await saveChatContext(currentContextName);
+    }
+  
+    // Reset the state variables to their default values
+    setMessages({
+      sender: "root",
+      message: "",
+      children: [],
+    });
+    setPdfs([]);
+    setCurrentMessage(null);
+    // Reset any other state variables here as needed
+  
+    // Optionally, reset the current context name if desired
+    setCurrentContextName("");
+  };
+
+  
+  const traverseMessages = (node) => {
+    // Copy the node's data except the children
+    const nodeCopy = { sender: node.sender, message: node.message, children: [] };
+  
+    // Recursively handle the children
+    if (node.children && node.children.length > 0) {
+      nodeCopy.children = node.children.map(child => traverseMessages(child));
+    }
+  
+    return nodeCopy;
+  };
+  
+  
+  const saveChatContext = async (contextName) => {
+    console.log("Saving context", contextName);
+  
+    // Function to recursively serialize the message nodes, including the inContext property
+    const serializeMessageNodes = (node, parentId = null) => {
+      const serializedNode = {
+        id: node.id,
+        message: node.message,
+        sender: node.sender,
+        row: node.row,
+        col: node.col,
+        inContext: node.inContext,
+        parentId: parentId, // Save the parent's ID
+        children: node.children.map(child => serializeMessageNodes(child, node.id))
+      };
+      return serializedNode;
+    };
+  
+    // Serialize the message tree
+    let serializedMessages = serializeMessageNodes(messages);
+
+    try {
+      // Map over the 'pdfs' and upload each PDF while preserving its properties
+      const pdfFileReferences = await Promise.all(pdfs.map(async (pdf) => {
+        // Upload the PDF and get the file URL
+        const uploadedPdfReference = await uploadPdf(pdf);
+  
+        // Combine the uploaded PDF reference with the additional properties
+        return {
+          fileUrl: uploadedPdfReference.fileUrl, // This is the URL from the upload response
+          fileName: pdf.fileName, // Preserving the original fileName
+          numPages: pdf.numPages, // Preserving the number of pages
+          selectedPages: Array.from(pdf.selectedPages) // Preserving the selected pages
+        };
+      }));
+  
+      const chatContext = {
+        messageTree: serializedMessages,
+        pdfFileReferences, // Array of file references with all necessary properties
+        contextName,
+      };
+  
+      // Sending the chat context to the server
+      const response = await fetch('http://localhost:3001/api/saveContext', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(chatContext),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to save chat context');
+      }
+  
+      const responseData = await response.text();
+      console.log('Chat context saved successfully', responseData);
+    } catch (error) {
+      console.error('Error saving chat context:', error);
+    }
+  };
+  
+  const loadChatContext = async (contextName) => {
+    console.log("Loading context", contextName);
+    try {
+      const response = await fetch(`http://localhost:3001/api/loadContext/${contextName}`);
+      if (!response.ok) {
+        throw new Error(`Error loading chat context '${contextName}': ${response.statusText}`);
+      }
+  
+      const chatContext = await response.json();
+      const { messageTree, pdfFileReferences } = chatContext;
+  
+      const pdfs = await Promise.all(pdfFileReferences.map(async (fileRef) => {
+        const response = await fetch(fileRef.fileUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch PDF: ${fileRef.fileUrl}`);
+        }
+        const blob = await response.blob();
+  
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve({ file: e.target.result, numPages: fileRef.numPages, selectedPages: new Set(fileRef.selectedPages || []), fileName: fileRef.fileName });
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }));
+
+      console.log("PDFS: ", pdfs);
+  
+      // Update state with PDF data
+      setPdfs(pdfs);
+    
+      // Function to recursively rebuild the message nodes with correct references
+      const rebuildMessageNodes = (node, allNodes, parent = null) => {
+        const newNode = MessageNode(
+          parent, // Set the parent
+          null,
+          node.message,
+          node.sender,
+          node.row,
+          node.col,
+          node.inContext
+        );
+        newNode.id = node.id; // Preserve the original ID
+        newNode.children = (node.children || []).map(childId => rebuildMessageNodes(allNodes[childId], allNodes, newNode));
+        return newNode;
+      };
+  
+      // Rebuild the message tree
+      let allNodes = {};
+      const addAllNodes = (node) => {
+        allNodes[node.id] = { ...node, children: node.children.map(child => child.id) };
+        node.children.forEach(addAllNodes);
+      };
+      addAllNodes(messageTree);
+  
+      let rebuiltMessageTree = rebuildMessageNodes(allNodes[messageTree.id], allNodes);
+  
+      // Now rebuiltMessageTree is the root of your message tree
+      setMessages(rebuiltMessageTree);
+  
+      // Find the last leaf node in the message tree
+      let lastLeaf = rebuiltMessageTree;
+      while (lastLeaf.children && lastLeaf.children.length > 0) {
+        lastLeaf = lastLeaf.children[lastLeaf.children.length - 1];
+      }
+  
+      // Update currentMessage and currentBotMessage
+      setCurrentMessage(lastLeaf);
+      if (lastLeaf.sender === "bot") {
+        setCurrentBotMessage(lastLeaf);
+      } else {
+        setCurrentBotMessage(null);
+      }
+  
+      console.log(`Chat context '${contextName}' loaded successfully`);
+    } catch (error) {
+      console.error('Error loading chat context:', error);
+    }
+  };
+  
+  
   
 
   const commandHandlers = {
     "!help": handleHelpCommand,
     "!settings": handleSettingsCommand,
     "!prompt": handlePromptCommand,
+    "!solo": handleSoloCommand,
+    "!toggle": handleToggleCommand,
+    "!clear": clearContext,
+    "!save": saveChatContext,
+    "!load": loadChatContext,
     // Add more mappings as needed
   };
   
@@ -1198,13 +1545,20 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
   const chatCommands = [
     { command: "!help", description: "Show help information" },
     { command: "!settings", description: "Show settings"},
-    { command: "!prompt", description: "open prompt popup"}
+    { command: "!prompt", description: "open prompt popup"},
+    { command: "!solo", description: "Toggles off other components" },
+    { command: "!toggle", description: "Toggle a setting" },
+    { command: "!clear", description: "Clear the current context"},
+    { command: "!save", description: "Save the current context"},
+    { command: "!load", description: "Load a saved context"},
     // Add more commands as needed
   ];
   
 
   const [suggestions, setSuggestions] = useState([]);
 
+  
+  
   
 
   const toggleLockSettings = (value) => {
@@ -1236,6 +1590,9 @@ const updateTextareaHeight = () => {
 
 
 
+
+
+
   
 
 
@@ -1250,6 +1607,7 @@ const updateTextareaHeight = () => {
 
   useEffect(() => {
     // Focus the textarea whenever currentMessage changes
+    console.log("Current Message:", currentMessage);
     textareaRef.current.focus();
   }, [currentMessage]); // Dependency array includes currentMessage
 
@@ -1323,9 +1681,7 @@ const updateTextareaHeight = () => {
     }
   };
 
-  const isColumnOccupied = (col) => {
-    return processedNodes.some((node) => node.col === col);
-  };
+
   const findNextMessageToRight = (currentMessage) => {
     let tempNode = currentMessage;
     let stepsUp = 0;
@@ -1428,63 +1784,10 @@ const updateTextareaHeight = () => {
     return () => window.removeEventListener("keydown", handleArrowKeys);
   }, [currentMessage]);
 
-  const assignRowAndCol = (node, isChild = false) => {
-    if (!node) return;
-    // if (node.sender == 'root') return;
-
-    node.row = currentRow;
-    node.col = currentCol;
-
-    if (node.children && node.children.length) {
-      node.children.forEach((child, index) => {
-        if (index === 0) {
-          // First child: Directly below the parent
-          currentRow = node.row + 1;
-          currentCol = node.col;
-
-          // Check if column is occupied
-          while (isColumnOccupied(currentCol)) {
-            currentCol++;
-          }
-        } else {
-          // Subsequent children: To the right of the parent
-          currentRow = node.row;
-          currentCol = node.col + index;
-
-          // Push nodes to the right to make space
-          processedNodes.forEach((existingNode) => {
-            if (
-              existingNode.row === node.row &&
-              existingNode.col >= currentCol
-            ) {
-              existingNode.col++;
-            }
-          });
-
-          // Check if column is occupied
-          while (isColumnOccupied(currentCol)) {
-            currentCol++;
-          }
-        }
-        assignRowAndCol(child, true);
-      });
-    } else {
-      if (!isChild) {
-        currentRow++;
-        currentCol = 0;
-        if (currentRow > 0) {
-          currentCol = maxColInLastRow + 1;
-        }
-      }
-    }
-    maxColInLastRow = Math.max(maxColInLastRow, currentCol);
-    processedNodes.push(node);
-  };
-
-  assignRowAndCol(messages);
+  
   processedNodes.forEach((node) => {
     node.row--;
-  });
+  }, [currentMessage]); 
 
   const countTotalMessages = (node) => {
     if (!node) return 0;
@@ -1547,6 +1850,50 @@ const updateTextareaHeight = () => {
 
   }
 
+  const parseCommand = async (input) => {
+    const commandsListString = "[" + chatCommands.map(cmd => cmd.command).join(", ") + "]";
+
+    const prompt = "# Mission\nYou are a command parser.  You have a list of executable commands: \n\n" + commandsListString + "\n\nYou will only respond with what you think the original command from the user was and nothing else.  Place this command in tripple $$$ for easy parsing.\n\n# Examples\n\nUser input: !prosmpt\n\n# Output\n\n$$$!prompt$$$\n\nUser input: !r un param1 | param 2\n\n# Output\n\n$$$!run param1 | param 2$$$\n\nUser input: " + input;
+    const response = await BotFunctions.callApiNoStream(prompt, settings['Use Api']);
+
+    console.log(response);
+
+    const commandRegex = /\${3}(!.+?)\${3}/;
+    const match = commandRegex.exec(response.data);
+
+    if (match && match[1]) {
+      const fullCommand = match[1].trim();
+      const parts = fullCommand.split(' ');
+      const commandSent = parts[0];
+      const rest = parts.slice(1).join(' ');
+      const argss = rest.split('|').map(arg => arg.trim());
+      console.log(commandSent, argss);
+      return { commandSent, argss };
+    }
+
+    throw new Error('Unable to parse command');
+  }
+
+  function getClosestCommand(inputCommand, commandList) {
+    console.log("inputCommand: ", inputCommand);
+    const inputCmdWithoutExclamation = inputCommand.startsWith('!') ? inputCommand.slice(1) : inputCommand;
+  let closestMatch = null;
+  let closestMatchLengthDifference = Infinity;
+
+  commandList.forEach(cmdObj => {
+    const commandName = cmdObj.command.slice(1); // Remove the '!' from the command name
+    if (commandName.startsWith(inputCmdWithoutExclamation)) {
+      const lengthDifference = commandName.length - inputCmdWithoutExclamation.length;
+      if (lengthDifference < closestMatchLengthDifference) {
+        closestMatch = cmdObj.command;
+        closestMatchLengthDifference = lengthDifference;
+      }
+    }
+  });
+
+  return closestMatch;
+}
+
   const sendMessage = async (message = "") => {
     console.log("message: ", message);
     
@@ -1556,19 +1903,47 @@ const updateTextareaHeight = () => {
 
     
     const parts = input.split(' ');
-    const command = parts[0];
+    let command = parts[0];
+    const closestCommand = getClosestCommand(command, chatCommands);
+    if (closestCommand) {
+      command = closestCommand;
+    }
+    
+
     const rest = parts.slice(1).join(' ');
     const args = rest.split('|').map(arg => arg.trim());
 
     console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
-
-    if (commandHandlers[command]) {
-      console.log("args: ", args);
-      sendCommand(command, args);
-      setInput(""); // Clear the input field
-      
-      return; // Return early
+    if (input[0] === '!') {
+      if (commandHandlers[command]) {
+        console.log("command: ", command);
+        console.log("args: ", args);
+        sendCommand(command, args);
+        setInput(""); // Clear the input field
+        
+        return; // Return early
+      } else {
+        console.log(`Unknown command: ${command}`);
+        // Handle unknown commands, show error message, etc.
+        if (settings['Use Api'])
+        {
+          try {
+            const { commandSent, argss } = await parseCommand(input);
+            console.log(commandSent, argss);
+            sendCommand(commandSent, argss);
+            setInput("");
+          } catch (error) {
+            console.error(error.message);
+            // Handle error, such as showing a message to the user
+          }
+          return;
+        }
+        else {
+          return;
+        }
+      }
     }
+    
 
     const p = message === "" ? input : message;
 
@@ -1641,10 +2016,10 @@ const updateTextareaHeight = () => {
   };
   
 
-  const sendCommand = (command) => {
+  const sendCommand = (command, args = []) => {
     const commandFunction = commandHandlers[command];
     if (commandFunction) {
-      commandFunction();
+      commandFunction(... args);
     } else {
       console.log(`Unknown command: ${command}`);
       // Handle unknown commands, show error message, etc.
@@ -1745,8 +2120,8 @@ const updateTextareaHeight = () => {
     updateTextareaHeight();
   }, [textareaHeight]); // Dependency array includes textareaHeight
 
-  const isMiniViewActive = settings['Toggle Miniview'];
-const isPdfViewerActive = settings['Toggle PDF Viewer'];
+  const isMiniViewActive = settings['Miniview'];
+const isPdfViewerActive = settings['PDF Viewer'];
 
 // Container style for MiniView and PDF Viewer
 const miniViewPdfViewerContainerStyle = {
@@ -1796,6 +2171,7 @@ const miniViewPdfViewerContainerStyle = {
           ref={promptPopupRef}
           prompts={prompts}
       setPrompts={setPrompts}
+      savePromptsToServer={savePromptsToServer}
           onSend={sendPromptMessage}
           onSendWithContext={sendPromptMessageWithContext}
           onClose={() => setShowPromptPopup(false)}
@@ -1857,7 +2233,7 @@ const miniViewPdfViewerContainerStyle = {
                     
                   }}
                 >
-              <ChatComponent currentMessage={currentMessage} currentBotMessage={currentBotMessage} increment = {incrementMessageCount} currentBotText={currentBotMessageText} wide={settings['Toggle Miniview'] || settings['Toggle PDF Viewer']}/>
+              <ChatComponent currentMessage={currentMessage} currentBotMessage={currentBotMessage} increment = {incrementMessageCount} currentBotText={currentBotMessageText} wide={settings['Miniview'] || settings['PDF Viewer']}/>
 
               
             </div>
@@ -1867,13 +2243,13 @@ const miniViewPdfViewerContainerStyle = {
             <div style={{... miniViewPdfViewerContainerStyle}} className="dark-scrollbar">
               <div style={{flex: 1, overflowY: 'auto' }}>
                 {/* Pass the lifted state and handler as props to PdfViewerComponent */}
-                {settings['Toggle PDF Viewer'] && (
+                {settings['PDF Viewer'] && (
                 <div style={{...svgStyles, maxHeight: '21.375vh', overflowY: 'auto' }} className="dark-scrollbar">
                   <PdfViewerComponent pdfs={pdfs} setPdfs={setPdfs} onFileChange={onFileChange} />
                 </div>
               )}
               </div>
-              {settings['Toggle Miniview'] && (
+              {settings['Miniview'] && (
               <div style={{ flex: 3}} className="dark-scrollbar">
                 <MiniView
                   messages={messages}

@@ -5,6 +5,8 @@ import MessageComponent from './MessageComponent';
 
 
 const generateConversationLists = (currentMessage, messagesTree) => {
+  console.log(currentMessage, messagesTree);
+  console.log("************************************************************************************************");
     let conversationList = [];
     let otherMessagesList = [];
     const visitedMessages = new Set();
