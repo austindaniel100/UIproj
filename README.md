@@ -262,7 +262,7 @@ This component significantly streamlines the process of customizing interactions
 
 
 # Prompt popup view
-![Prompt popup view default](pdfPopupEmpty.PNG)
+![Prompt popup view default](promptPopupEmpty.PNG)
 
 # Prompt popup view example
-![Prompt popup view example](pdfPopup.PNG)
+![Prompt popup view example](promptPopup.PNG)
