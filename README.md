@@ -9,7 +9,7 @@
 
 - prompt generator button from name: input is name(para1, para2), generate prompt with parameters, and change name input area to just name and save prompt
 # Chatbot UI
-![Screenshot](standardLayout.PNG)
+![Screenshot](standard.PNG)
 
 ## How to Run
 
@@ -131,7 +131,7 @@ The application now includes a sophisticated PDF interaction feature, enabling u
 ![PDF Page Selector Screenshot](pdfPopup.PNG)
 
 # PDF Page Selector Dark Pdfs
-![PDF Page Selector Screenshot](pdfPopupDark.PNG)
+![PDF Page Selector Screenshot](pdfPopup2.PNG)
 
 
 
