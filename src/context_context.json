@@ -1,0 +1,98 @@
+{
+  "messageTree": {
+    "message": "",
+    "sender": "root",
+    "inContext": false,
+    "parentId": null,
+    "children": [
+      {
+        "id": "1700522112625-0.916725106967804",
+        "message": "hi",
+        "sender": "user",
+        "row": 0,
+        "col": 0,
+        "inContext": true,
+        "parentId": null,
+        "children": [
+          {
+            "id": "1700522112625-0.8785899073480687",
+            "message": "API call failed or is not turned on.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1",
+            "sender": "bot",
+            "row": 0,
+            "col": 0,
+            "inContext": true,
+            "parentId": "1700522112625-0.916725106967804",
+            "children": [
+              {
+                "id": "1700522145260-0.3864973078966776",
+                "message": "summarize the current context concisely",
+                "sender": "user",
+                "row": 0,
+                "col": 0,
+                "inContext": false,
+                "parentId": "1700522112625-0.8785899073480687",
+                "children": [
+                  {
+                    "id": "1700522145260-0.3314118193468316",
+                    "message": "Austin Daniel is a Senior Full-Stack Developer with a focus on front-end technologies. He has extensive experience in .NET, C#, and JavaScript and is skilled in various programming languages and frameworks. He holds an M.S. in Computer Science from Georgia Institute of Technology, with a specialization in Artificial Intelligence (expected graduation: Dec 2022) and a B.S. in Computer Science from the same institute (graduation: May 2021). Austin has worked as a Web3 Developer, Software Engineering Intern at UPS, and Systems Contractor at 30A Guest Property Management. He possesses technical skills in programming languages like C#, JavaScript, HTML, CSS, front-end frameworks like React and Angular, back-end technologies like .NET and SQL Server, DevOps tools like Azure DevOps and Git/GitHub, as well as tools like Visual Studio, Azure, and Microsoft Office. Austin also holds certifications as a Certified Solidity Developer (CSD) and Certified Python Programmer (CPP).",
+                    "sender": "bot",
+                    "row": 0,
+                    "col": 0,
+                    "inContext": false,
+                    "parentId": "1700522145260-0.3864973078966776",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "1700522239672-0.4092511380489352",
+                "message": "Summarize the context.  give a one line summary for each pdf, and a one line summary for the conversation thread",
+                "sender": "user",
+                "row": 0,
+                "col": 0,
+                "inContext": true,
+                "parentId": "1700522112625-0.8785899073480687",
+                "children": [
+                  {
+                    "id": "1700522239672-0.13622964862615006",
+                    "message": "PDF 1 (Austin_Daniel_Updated_Resume.pdf): Resume of Austin Daniel, a senior full-stack developer with a focus on front-end technologies and experience in .NET, C#, and JavaScript.\n\nPDF 2 (file.pdf): Contains information about intelligence and the history of AI.\n\nConversation Thread: User asks for a summary of the context.",
+                    "sender": "bot",
+                    "row": 0,
+                    "col": 0,
+                    "inContext": true,
+                    "parentId": "1700522239672-0.4092511380489352",
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "pdfFileReferences": [
+    {
+      "fileUrl": "http://localhost:3001/uploads/Austin_Daniel_Updated_Resume.pdf",
+      "fileName": "Austin_Daniel_Updated_Resume.pdf",
+      "numPages": 3,
+      "selectedPages": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "fileUrl": "http://localhost:3001/uploads/file.pdf",
+      "fileName": "file.pdf",
+      "numPages": 36,
+      "selectedPages": [
+        4,
+        3,
+        8,
+        13,
+        18
+      ]
+    }
+  ]
+}

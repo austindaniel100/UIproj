@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Write Email",
+    "content": "Write an email to {name} about {topic}.  Keep this email in my style of {emails}",
+    "parameters": {
+      "name": "john",
+      "topic": "accounting",
+      "emails": "'path/to/file'"
+    }
+  }
+]
