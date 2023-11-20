@@ -1,5 +1,5 @@
 todo: contextual sidebar, internet search
-more chat commands: pdfcontext, clear context
+more chat commands: pdf select
 # Chatbot UI
 ![Screenshot](screen.PNG)
 
@@ -151,9 +151,31 @@ The application now includes a sophisticated PDF interaction feature, enabling u
 - **Shift + Enter**: Add a newline in the message input field (multi-line input).
 - **Ctrl + Enter**: Send a message without triggering a bot response.
 
-### Command Functionality
-- **!help**: Executes the `handleHelpCommand` function (e.g., show help information).
-- **!settings**: Toggles the visibility of the settings popup.
+### General Commands
+- `!help`: Show help information. Use this command to get a brief description of all available commands.
+- `!settings`: Show settings. This command displays the current settings of the application.
+- `!prompt`: Open prompt popup. Use this to activate a prompt popup for user input.
+- `!solo`: Toggles off other components. This command is used to focus on a single component by turning off others.
+- `!toggle`: Toggle a setting. With this command, you can switch a specific setting on or off.
+- `!clear`: Clear the current context. This command clears any ongoing operations or contexts.
+- `!save`: Save the current context. Use this to save the current state or context of your session.
+- `!load`: Load a saved context. This command allows you to load a previously saved context.
+
+### PDF Commands
+The `!pdf` command is a special command used for managing PDF documents within the application. It has several sub-commands:
+
+- `view(name)`: Opens the viewer for the specified PDF. If no name is provided, it opens the first PDF in the list.
+- `select(pages)`: Selects the specified pages of the currently active PDF.
+- `deselect`: Deselects page numbers for a specified PDF. If no PDF is specified, it deselects pages for all PDFs.
+- `clear`: Clears all PDFs from the viewer.
+- `remove(name)`: Removes a specified PDF from the viewer. If no name is provided, no action is taken.
+
+#### Usage
+- To use a PDF command, type `!pdf` followed by the specific command and arguments. For example:
+  - `!pdf view myDocument.pdf`: This would attempt to open a PDF named "myDocument.pdf" in the viewer.
+  - `!pdf select 1-5`: This would select pages 1 to 5 of the currently active PDF.
+  - `!pdf deselect`: This would deselect all selected pages in all PDFs.
+
 
 ### Additional Features
 - **MiniView Focus**: Click the "Focus" button to center and zoom the MiniView on the tree of messages.

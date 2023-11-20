@@ -1044,6 +1044,8 @@ const Chatbot = () => {
   const [prompts, setPrompts] = useState([]); // State to store user prompts
   const [currentContextName, setCurrentContextName] = useState("");
 
+  const pdfViewerRef = useRef();
+
 
   const savePromptsToServer = async () => {
     try {
@@ -1242,7 +1244,7 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
       " ",
       "bot"
     );
-    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
+    // console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
     userMessage.children = [botReply];
 
     setCurrentBotMessage(botReply);
@@ -1252,10 +1254,10 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
     setCurrentBotMessageText("");
 
     const botResponse = await BotFunctions.getBotReply(input, currentMessage, messages, pdfs, settings['Use Api'], updateBotMessage);
-    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
+    // console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
     
-    console.log("______________________________________________")
-    console.log(botResponse);
+    // console.log("______________________________________________")
+    // console.log(botResponse);
     setCurrentBotMessageText("");
     botReply.message = botResponse;
 
@@ -1266,7 +1268,7 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
   const sendPromptMessageWithContext = async (message) => {
     // Handle sending the message with context
     console.log(message);
-    console.log("SDHFDSHUFOIHSDJL:FHSDJKFGHSELIUEFGKJSHDFKJl");
+    // console.log("SDHFDSHUFOIHSDJL:FHSDJKFGHSELIUEFGKJSHDFKJl");
     setShowPromptPopup(false);
     sendMessage(message);
     // ... your implementation to send the message with context ...
@@ -1289,7 +1291,7 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
   };
 
   const handleToggleCommand = (input) => {
-    console.log("SDFHSHDSF", input);
+    console.log("Toggle: ", input);
     const settingsList = ['Lock Settings', 'Use Api', 'Miniview', 'PDF Viewer', 'Update Context on Send'];
     let matchedSetting = null;
 
@@ -1525,7 +1527,166 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
       console.error('Error loading chat context:', error);
     }
   };
+
+  function getClosestPDFCommand(inputCommand, commandList) {
+    console.log("inputCommand: ", inputCommand);
+    let closestMatch = null;
+    let closestMatchLengthDifference = Infinity;
+
+    commandList.forEach(cmdObj => {
+        const commandName = cmdObj.command;
+        if (commandName.startsWith(inputCommand)) {
+            const lengthDifference = commandName.length - inputCommand.length;
+            if (lengthDifference < closestMatchLengthDifference) {
+                closestMatch = cmdObj.command;
+                closestMatchLengthDifference = lengthDifference;
+            }
+        }
+    });
+
+    return closestMatch;
+}
+
+function getClosestPDFFileName(inputName, pdfNames) {
+  console.log("inputName: ", inputName);
+  let closestMatch = null;
+  let highestMatchScore = -1;
+
+  pdfNames.forEach(pdfName => {
+      let matchScore = 0;
+
+      // Check if the first letter matches
+      if (pdfName.toLowerCase().startsWith(inputName.toLowerCase()[0])) {
+          matchScore += 10; // Higher score for first letter match
+
+          // Check if the input is a substring of the pdf name
+          if (pdfName.toLowerCase().includes(inputName.toLowerCase())) {
+              matchScore += 5; // Add score for substring match
+          }
+
+          // Additional logic for multi-word inputs
+          const inputWords = inputName.toLowerCase().split(/\s+/);
+          if (inputWords.length > 1) {
+              const pdfWords = pdfName.toLowerCase().split(/\s+/);
+              for (let i = 1; i < inputWords.length; i++) {
+                  if (pdfWords.length > i && pdfWords[i].startsWith(inputWords[i][0])) {
+                      matchScore += 2; // Lower score for subsequent words' first letter match
+                  }
+              }
+          }
+      }
+
+      if (matchScore > highestMatchScore) {
+          highestMatchScore = matchScore;
+          closestMatch = pdfName;
+      }
+  });
+
+  return closestMatch;
+}
+
+
+
+  const handlePdfCommand = async (input = "") => {
+    if (input === '') {
+      return;
+    }
+
+    const pdfCommands = [{command: 'view', description: 'view(name) the chosen pdf name'}, {command: 'select', description: 'select(pages) selects the number of pages'}, {command: 'deselect', description: 'deselect page numbers for a pdf'}, {command: 'clear', description: 'clear all pdfs'}, {command: 'remove', description: 'remove named pdf'}];
+    // const pdfCommandsListString = "[" + pdfCommands.map(cmd => cmd.command).join(", ") + "]";
+    // Extract the command from user input using regex
+    const commandRegex = /(\b\w+\b)/;
+    const commandMatch = commandRegex.exec(input);
+    if (!commandMatch) {
+        throw new Error('Unable to parse command');
+    }
+
+    const inputCommand = commandMatch[0];
+    const closestCommand = getClosestPDFCommand(inputCommand, pdfCommands);
+    if (!closestCommand) {
+        throw new Error('No matching command found');
+    }
+
+    // Extract arguments after the command
+    const args = input.slice(input.indexOf(inputCommand) + inputCommand.length).trim().split(/\s*\|\s*/);
+
+    console.log(closestCommand, args);
+
+    if (closestCommand === 'view') {
+      const pdfNames = pdfs.map(pdf => pdf.fileName);
+      console.log("VIEW PDF: ", args[0], pdfNames);
+      if (args[0]) {
+          const closestPdf = getClosestPDFFileName(args[0], pdfNames);
+          if (!closestPdf) {
+              throw new Error('No matching pdf found');
+          }
+          console.log("Viewing PDF: ", closestPdf);
+          pdfViewerRef.current.openPdfViewer(closestPdf);
+
+      } else {
+          console.log("Viewing PDF: ", pdfs[0].fileName);
+      }
   
+  
+
+      
+
+    } else if (closestCommand === 'select') {
+      //set all page number selections that the user asks for.  use another callapinostream prompt to get the page numbers from a semantic user query.
+      console.log("Selecting PDF")
+
+    } else if (closestCommand === 'deselect') {
+      //set all page number selections to false within the pdfs state variable for the selected pdf.  If no pdf is selected(no args) then deselect all pdfs
+      console.log("Deselecting PDF")
+      const pdfNames = pdfs.map(pdf => pdf.fileName);
+      console.log("Deselect PDF: ", args[0], pdfNames);
+      if (args[0]) {
+          const closestPdf = getClosestPDFFileName(args[0], pdfNames);
+          if (!closestPdf) {
+              throw new Error('No matching pdf found');
+          }
+          console.log("Deselecting PDF: ", closestPdf);
+          setPdfs(prevPdfs => prevPdfs.map(pdf => {
+            if (pdf.fileName === closestPdf) {
+                return { ...pdf, selectedPages: new Set() }; // Deselect all pages
+            }
+            return pdf;
+        }));
+
+      } else {
+          console.log("Deselecting all PDFS: ");
+          setPdfs(prevPdfs => prevPdfs.map(pdf => ({ ...pdf, selectedPages: new Set() }))); // Deselect all pages
+          return;
+      }
+
+    } else if (closestCommand === 'clear') {
+      //clear all pdfs state variable
+      console.log("Clearing PDFs")
+      setPdfs([]);
+    } else if (closestCommand === 'remove') {
+      console.log("Removing PDF")
+      const pdfNames = pdfs.map(pdf => pdf.fileName);
+      console.log("Remove PDF: ", args[0], pdfNames);
+      if (args[0]) {
+          const closestPdf = getClosestPDFFileName(args[0], pdfNames);
+          if (!closestPdf) {
+              throw new Error('No matching pdf found');
+          }
+          console.log("Removing PDF: ", closestPdf);
+          const newPdfs = pdfs.filter(pdf => pdf.fileName !== closestPdf);
+          setPdfs(newPdfs);
+
+      } else {
+          console.log("not Removing PDF: ", pdfs[0].fileName);
+          return;
+      }
+    } else {
+
+    }
+
+    // throw new Error('Unable to parse command');
+  
+  };
   
   
 
@@ -1538,6 +1699,7 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
     "!clear": clearContext,
     "!save": saveChatContext,
     "!load": loadChatContext,
+    "!pdf": handlePdfCommand,
     // Add more mappings as needed
   };
   
@@ -1551,6 +1713,7 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
     { command: "!clear", description: "Clear the current context"},
     { command: "!save", description: "Save the current context"},
     { command: "!load", description: "Load a saved context"},
+    { command: "!pdf", description: "PDF commands"},
     // Add more commands as needed
   ];
   
@@ -1828,7 +1991,7 @@ const updateTextareaHeight = () => {
   const sendMessageOnly = async () => {
     if (input === "" || input.trim() === "") return;
     const userMessage = MessageNode(currentMessage, incrementMessageCount, input, "user");
-    console.log("HISHDIFHDSIHF");
+    // console.log("HISHDIFHDSIHF");
     // If there's a current message, add the new user message as its child.
     if (currentMessage) {
         if (!currentMessage.children) {
@@ -1856,7 +2019,7 @@ const updateTextareaHeight = () => {
     const prompt = "# Mission\nYou are a command parser.  You have a list of executable commands: \n\n" + commandsListString + "\n\nYou will only respond with what you think the original command from the user was and nothing else.  Place this command in tripple $$$ for easy parsing.\n\n# Examples\n\nUser input: !prosmpt\n\n# Output\n\n$$$!prompt$$$\n\nUser input: !r un param1 | param 2\n\n# Output\n\n$$$!run param1 | param 2$$$\n\nUser input: " + input;
     const response = await BotFunctions.callApiNoStream(prompt, settings['Use Api']);
 
-    console.log(response);
+    // console.log(response);
 
     const commandRegex = /\${3}(!.+?)\${3}/;
     const match = commandRegex.exec(response.data);
@@ -1867,7 +2030,7 @@ const updateTextareaHeight = () => {
       const commandSent = parts[0];
       const rest = parts.slice(1).join(' ');
       const argss = rest.split('|').map(arg => arg.trim());
-      console.log(commandSent, argss);
+      // console.log(commandSent, argss);
       return { commandSent, argss };
     }
 
@@ -1875,7 +2038,7 @@ const updateTextareaHeight = () => {
   }
 
   function getClosestCommand(inputCommand, commandList) {
-    console.log("inputCommand: ", inputCommand);
+    // console.log("inputCommand: ", inputCommand);
     const inputCmdWithoutExclamation = inputCommand.startsWith('!') ? inputCommand.slice(1) : inputCommand;
   let closestMatch = null;
   let closestMatchLengthDifference = Infinity;
@@ -1893,13 +2056,14 @@ const updateTextareaHeight = () => {
 
   return closestMatch;
 }
+  
 
   const sendMessage = async (message = "") => {
     console.log("message: ", message);
     
     if ((input === "" || input.trim() === "") && message === "") return;
 
-    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
+    // console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
 
     
     const parts = input.split(' ');
@@ -1913,7 +2077,7 @@ const updateTextareaHeight = () => {
     const rest = parts.slice(1).join(' ');
     const args = rest.split('|').map(arg => arg.trim());
 
-    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
+    // console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
     if (input[0] === '!') {
       if (commandHandlers[command]) {
         console.log("command: ", command);
@@ -1953,7 +2117,7 @@ const updateTextareaHeight = () => {
       p,
       "user"
     );
-    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
+    // console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
 
     // If there's a current message, add the new user message as its child.
     if (currentMessage) {
@@ -1977,7 +2141,7 @@ const updateTextareaHeight = () => {
       " ",
       "bot"
     );
-    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
+    // console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
     userMessage.children = [botReply];
 
     setCurrentBotMessage(botReply);
@@ -1987,10 +2151,10 @@ const updateTextareaHeight = () => {
     setCurrentBotMessageText("");
 
     const botResponse = await BotFunctions.getBotReply(input, currentMessage, messages, pdfs, settings['Use Api'], updateBotMessage);
-    console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
+    // console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
     
-    console.log("______________________________________________")
-    console.log(botResponse);
+    // console.log("______________________________________________")
+    // console.log(botResponse);
     setCurrentBotMessageText("");
     botReply.message = botResponse;
 
@@ -2098,6 +2262,8 @@ const updateTextareaHeight = () => {
     const handleClick = (command) => {
       sendCommand(command);
     };
+
+    
   
     return (
       <div style={predictiveViewStyle}>
@@ -2128,6 +2294,10 @@ const miniViewPdfViewerContainerStyle = {
   flex: isMiniViewActive && isPdfViewerActive ? 2 : (isMiniViewActive || isPdfViewerActive ? 2 : 0),
   display: 'flex',
   flexDirection: 'column',
+};
+
+const triggerFileInputClick = () => {
+  document.getElementById("hiddenFileInput").click();
 };
 
 
@@ -2245,9 +2415,15 @@ const miniViewPdfViewerContainerStyle = {
                 {/* Pass the lifted state and handler as props to PdfViewerComponent */}
                 {settings['PDF Viewer'] && (
                 <div style={{...svgStyles, maxHeight: '21.375vh', overflowY: 'auto' }} className="dark-scrollbar">
-                  <PdfViewerComponent pdfs={pdfs} setPdfs={setPdfs} onFileChange={onFileChange} />
+                    <PdfViewerComponent 
+                        pdfs={pdfs} 
+                        setPdfs={setPdfs} 
+                        onFileChange={onFileChange} 
+                        ref = {pdfViewerRef}
+                        triggerFileInputClicked={triggerFileInputClick} // Pass the function as a prop
+                    />
                 </div>
-              )}
+            )}
               </div>
               {settings['Miniview'] && (
               <div style={{ flex: 3}} className="dark-scrollbar">
