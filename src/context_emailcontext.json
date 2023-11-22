@@ -1,0 +1,76 @@
+{
+  "messageTree": {
+    "message": "",
+    "sender": "root",
+    "inContext": false,
+    "parentId": null,
+    "children": [
+      {
+        "id": "1700687297594-0.7202880740251465",
+        "message": "hello",
+        "sender": "user",
+        "row": 0,
+        "col": 0,
+        "inContext": true,
+        "parentId": null,
+        "children": [
+          {
+            "id": "1700687297594-0.03693711477867212",
+            "message": "Hello! How can I assist you today?",
+            "sender": "bot",
+            "row": 0,
+            "col": 0,
+            "inContext": true,
+            "parentId": "1700687297594-0.7202880740251465",
+            "children": [
+              {
+                "id": "1700687308205-0.633092769891844",
+                "message": "write me an email to a coworker",
+                "sender": "user",
+                "row": 0,
+                "col": 0,
+                "inContext": true,
+                "parentId": "1700687297594-0.03693711477867212",
+                "children": [
+                  {
+                    "id": "1700687308205-0.1850516219732672",
+                    "message": "Sure, I can help you with that. Could you please provide me with the details of the email, such as the recipient's name, the subject, and the content?",
+                    "sender": "bot",
+                    "row": 0,
+                    "col": 0,
+                    "inContext": true,
+                    "parentId": "1700687308205-0.633092769891844",
+                    "children": [
+                      {
+                        "id": "1700687378849-0.8175588082633227",
+                        "message": "john, do my taxes already is the subject, and the content should be about telling him to do my taxes since he's my accountant and i'm paying him",
+                        "sender": "user",
+                        "row": 0,
+                        "col": 0,
+                        "inContext": true,
+                        "parentId": "1700687308205-0.1850516219732672",
+                        "children": [
+                          {
+                            "id": "1700687378849-0.8060875163932686",
+                            "message": "Subject: Urgent: Please complete my tax filing\n\nDear John,\n\nI hope this email finds you well. I am reaching out to discuss the status of my tax filing for the current year. As my trusted accountant, I have entrusted this important task to you, and I would appreciate it if you could complete it as soon as possible.\n\nI understand that you may have a busy schedule, but given that we are approaching the deadline, I kindly request your prompt attention to this matter. As a paying client, I rely on your expertise and professionalism to ensure that my taxes are filed accurately and in a timely manner.\n\nIf there are any additional documents or information needed from my end, please let me know, and I will be more than happy to provide them promptly. \n\nThank you for your attention to this matter and for your continued support as my accountant. I look forward to hearing from you soon with an update on the progress of my tax filing.\n\nBest regards,\n\n[Your Name]",
+                            "sender": "bot",
+                            "row": 0,
+                            "col": 0,
+                            "inContext": true,
+                            "parentId": "1700687378849-0.8175588082633227",
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "pdfFileReferences": []
+}

@@ -284,3 +284,53 @@ This component significantly streamlines the process of customizing interactions
 
 # Prompt popup view example
 ![Prompt popup view example](promptPopup.PNG)
+
+
+# SideNavBar Component Documentation
+
+The `SideNavBar` component in React is a versatile and interactive sidebar designed for a chatbot interface. It provides users with a range of functionalities to enhance their experience. This document outlines the features and usage of the `SideNavBar` component.
+
+## Features
+
+### 1. Collapsible Sidebar
+- **Toggle Button**: Users can collapse or expand the sidebar using the toggle button (`>` to expand, `<` to collapse).
+- **CSS Class Handling**: The sidebar's appearance changes based on its collapsed state, handled by the `collapsed` CSS class.
+
+### 2. System Prompt Customization
+- **Input Field**: Users can input custom system prompts for the chatbot.
+- **Dynamic Update**: The input field dynamically updates the system prompt in real-time.
+
+### 3. Contextual Chat
+- **Chat Input**: A text field for users to enter their chat prompts.
+- **Send Button**: Sends the user's input to the chatbot and retrieves the response.
+- **Response Display Area**: A read-only text area displaying the chatbot's responses.
+- **Error Handling**: Catches and logs any errors during the chat API call.
+
+### 4. Context Management
+- **Context Input**: Users can input and save new contexts for the chatbot.
+- **Context List**: Displays a list of saved contexts.
+- **Context Selection**: Users can select, load, or change the current context.
+- **Save Context Button**: Saves the new context entered by the user.
+
+### 5. Utility Buttons
+- **Prompt Menu Button**: Opens a menu for additional prompt-related functionalities.
+- **Data Menu Button**: Opens a menu for data-related functionalities.
+
+### 6. Styling
+- **Button Styles**: Customized button styling for a consistent user interface.
+
+## Usage
+
+- Import and integrate the `SideNavBar` component into your React application.
+- Ensure that the accompanying CSS file (`SideNavBar.css`) is correctly linked for styling.
+- The component requires several props for full functionality:
+  - `systemPrompt`, `setSystemPrompt`: For handling system prompt updates.
+  - `setShowPromptPopup`, `setShowDataPopup`: To control visibility of additional menus.
+  - `useApi`, `loadContext`, `saveContext`: Functions for API calls and context management.
+  - `currentMessage`, `messageTree`, `pdfs`: Data structures for managing chat and context.
+
+Remember to handle dependencies like `axios` for API requests and manage state appropriately within your application for seamless integration.
+
+
+# Contextual Sidebar
+![Prompt popup view example](sidebar.PNG)
