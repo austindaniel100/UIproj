@@ -1,0 +1,315 @@
+.side-nav {
+    width: 250px;
+    height: 100vh;
+    background-color: #333;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-x: hidden; /* Prevent horizontal overflow */
+    overflow-y: auto; /* Only show vertical scrollbar when needed */
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    transition: width 0.3s;
+}
+
+.side-nav.collapsed {
+    width: 50px;
+}
+
+.toggle-btn {
+    text-align: center;
+    cursor: pointer;
+    padding: 10px;
+    color: #ccc;
+}
+
+.nav-item {
+    margin-bottom: 20px;
+}
+
+.nav-label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ccc;
+}
+
+.nav-input{
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: #222;
+    color: #ccc;
+}
+
+
+.nav-button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    background-color: #555;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.nav-button:hover {
+    background-color: #666;
+}
+
+.collapsed .nav-item {
+    display: none;
+}
+
+.collapsed .toggle-btn {
+    width: 100%;
+}
+
+.nav-input, .nav-button {
+    /* Ensure these elements do not cause horizontal overflow */
+    box-sizing: border-box; /* Include padding and border in the element's total width */
+    width: calc(100% - 20px); /* Adjust width to account for padding */
+    /* ... */
+}
+/* ... additional styles as needed ... */
+/* ... existing styles ... */
+
+.chat-input-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* ...existing styles... */
+
+
+.nav-input {
+    flex-grow: 1; /* Take up available space */
+    margin-right: 10px; /* Spacing between input and button */
+}
+
+/* ... additional styles as needed ... */
+.side-nav {
+    width: 250px;
+    height: 100vh;
+    background-color: #23282d; /* Updated to match the darker theme */
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: width 0.3s;
+}
+
+.side-nav.collapsed {
+    width: 50px;
+}
+
+.toggle-btn {
+    text-align: center;
+    cursor: pointer;
+    padding: 10px;
+    color: #ccc; /* Light grey to match the theme */
+    transition: color 0.2s;
+}
+
+.nav-item {
+    margin-bottom: 20px;
+}
+
+.nav-label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ccc; /* Light grey to match the theme */
+}
+
+.nav-input{
+    width: calc(100% - 20px); /* Adjust width to account for padding */
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: #222; /* Dark background */
+    color: #ccc; /* Light grey text */
+    box-sizing: border-box;
+}
+
+.nav-button {
+    background: #29274C; /* Very dark purple, almost black */
+    color: #ccc; /* Light grey text color */
+    padding: "8px 16px";
+    border: "none";
+    borderRadius: "4px";
+    cursor: "pointer";
+    transition: "all 0.2s";
+    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)";
+    fontSize: "16px";
+    fontWeight: "500";
+    letterSpacing: "0.5px";
+    textDecoration: "none";
+    display: "flex";
+    justifyContent: "center";
+    alignItems: "center";
+    margin: "10px";
+    textTransform: 'none';
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    boxSizing: 'border-box';
+    width: '100px'; /* Adjust as needed */
+}
+
+.nav-button:hover {
+    background-color: #3a3963; /* Slightly lighter purple for hover */
+}
+
+.collapsed .nav-item,
+.side-nav {
+    width: 250px;
+    height: 100vh;
+    background-color: #23282d; /* Updated to match the darker theme */
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: width 0.3s;
+}
+
+.side-nav.collapsed {
+    width: 50px;
+}
+
+.toggle-btn {
+    text-align: center;
+    cursor: pointer;
+    padding: 10px;
+    color: #ccc; /* Light grey to match the theme */
+    transition: color 0.2s;
+}
+
+.nav-item {
+    margin-bottom: 20px;
+}
+
+.nav-label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ccc; /* Light grey to match the theme */
+}
+
+.nav-input{
+    width: calc(100% - 20px); /* Adjust width to account for padding */
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: #222; /* Dark background */
+    color: #ccc; /* Light grey text */
+    box-sizing: border-box;
+}
+
+/* ... existing styles ... */
+
+/* ... existing styles ... */
+
+/* ... existing styles ... */
+
+.nav-textarea {
+    height: 100px;
+    background-color: #222; /* Dark background */
+    color: #ccc; /* Light grey text */
+    border: 1px solid #555;
+    padding: 10px;
+    border-radius: 4px;
+    width: calc(100% - 20px);
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    resize: none; /* Disable resizing */
+    outline: none; /* Remove focus outline */
+
+    /* Add these to remove the focus outline specifically for Webkit/Blink browsers like Chrome and Safari */
+    &:focus {
+        outline: none;
+    }
+
+    /* Maintain text selection capability */
+    user-select: text; /* Allow text to be selected */
+}
+
+/* ... additional styles as needed ... */
+
+
+
+
+/* ... additional styles as needed ... */
+
+.nav-button {
+    background: #29274C; /* Very dark purple, almost black */
+    color: #ccc; /* Light grey text color */
+    padding: "8px 16px";
+    border: "none";
+    borderRadius: "4px";
+    cursor: "pointer";
+    transition: "all 0.2s";
+    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)";
+    fontSize: "16px";
+    fontWeight: "500";
+    letterSpacing: "0.5px";
+    textDecoration: "none";
+    display: "flex";
+    justifyContent: "center";
+    alignItems: "center";
+    margin: "10px";
+    textTransform: 'none';
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    boxSizing: 'border-box';
+    width: '100px'; /* Adjust as needed */
+}
+
+.nav-button:hover {
+    background-color: #3a3963; /* Slightly lighter purple for hover */
+}
+
+.collapsed .nav-item{
+    display: none;
+}
+
+.chat-input-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between elements */
+}
+
+/* Adjusting the chat input and button sizes */
+.chat-input-container .nav-input {
+    flex-grow: 3; /* Allows the input to grow and take up 75% of the space */
+}
+
+.chat-input-container .nav-button {
+    flex-grow: 1; /* Allows the button to grow and take up 25% of the space */
+}
+
+
+.chat-input-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between elements */
+}
+
+/* Adjusting the chat input and button sizes */
+.chat-input-container .nav-input {
+    flex-grow: 3; /* Allows the input to grow and take up 75% of the space */
+}
+
+.chat-input-container .nav-button {
+    flex-grow: 1; /* Allows the button to grow and take up 25% of the space */
+}

@@ -7,6 +7,7 @@ import BotFunctions from "./botReplyHandler";
 import ChatComponent from "./ChatComponent";
 import PdfViewerComponent from "./PdfComponent";
 import SettingsPopup from './SettingsPopup'; // Adjust the path as per your file structure
+import SideNavBar from './SideNavBar';
 
 
 import * as d3 from "d3";
@@ -2935,7 +2936,7 @@ const triggerFileInputClick = () => {
     onClose={() => setShowDataPopup(false)}
   />
 )}
-
+<SideNavBar />
       <div
         style={{
           display: "flex",
