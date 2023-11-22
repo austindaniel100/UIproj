@@ -1,19 +1,68 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // Make sure to install axios if not already done
+import './SideNavBar.css';
+import BotFunctions from './botReplyHandler';
 
-import React, { useState } from 'react';
-import './SideNavBar.css'; // Assuming you have a separate CSS file for styles
-
-const SideNavBar = () => {
+const SideNavBar = ({ systemPrompt, setSystemPrompt, setShowPromptPopup, setShowDataPopup, useApi, loadContext, saveContext, currentMessage, messageTree, pdfs }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [chatInput, setChatInput] = useState('');
+    const [contextInput, setContextInput] = useState('');
+    const [chatInput, setChatInput] = useState('Your default value here');
+
+    const [contextualChatArea, setContextualChatArea] = useState('');
+
+    const [contextList, setContextList] = useState([]);
+
+    const [currentContext, setCurrentContext] = useState('');
+
+
+    useEffect(() => {
+        setSystemPrompt(systemPrompt);
+    }, [systemPrompt, setSystemPrompt]);
+
+    useEffect(() => {
+        axios.get('http://localhost:3001/api/contexts')
+            .then(response => setContextList(response.data))
+            .catch(error => console.error('Error fetching contexts:', error));
+    }, [saveContext]);
 
     const handleToggle = () => {
         setIsCollapsed(!isCollapsed);
     };
 
-    const handleSendClick = () => {
-        // onSendClick(chatInput);
-        setChatInput(''); // Optionally clear the input after sending
+    const handleSendClick = async () => {
+        try {
+            const response = await BotFunctions.callApiContext(chatInput, currentMessage, messageTree, pdfs, useApi);
+            console.log("API Response:", response.data);
+            setContextualChatArea(response.data);
+            // Handle the response here (e.g., display it in the UI)
+        } catch (error) {
+            console.error("Error calling API:", error);
+            // Handle any errors here
+        }
+        
     };
+    const handlePromptInputChange = (e) => {
+        setSystemPrompt(e.target.value);
+    };
+
+    const handleSaveContext = async (newContextName) => {
+        try {
+            // Replace this with your actual save logic
+            await saveContext(newContextName); 
+    
+            setContextList(prevList => {
+                // Add new context name to the list if it's not already there
+                if (!prevList.includes(newContextName)) {
+                    return [...prevList, newContextName];
+                }
+                return prevList;
+            });
+        } catch (error) {
+            console.error('Error saving context:', error);
+            // Handle any errors in saving context here
+        }
+    };
+    
 
     const buttonStyles = {
         background: "#29274C", // Very dark purple, almost black
@@ -46,14 +95,20 @@ const SideNavBar = () => {
 
             {/* Custom Instruction Section */}
             <div className="nav-item">
-                <label className="nav-label">Custom Instruction</label>
-                <input className="nav-input" type="text" placeholder="Enter custom instruction" />
+                <label className="nav-label">System Prompt</label>
+                <input 
+                    className="nav-input" 
+                    type="text" 
+                    placeholder="Enter system prompt" 
+                    value={systemPrompt}
+                    onChange={handlePromptInputChange}
+                />
             </div>
 
             {/* Contextual Chat Section */}
             <div className="nav-item">
             <label className="nav-label">Contextual Chat</label>
-                <input 
+            <input 
                     className="nav-input" 
                     type="text" 
                     placeholder="Enter chat prompt" 
@@ -61,7 +116,7 @@ const SideNavBar = () => {
                     onChange={(e) => setChatInput(e.target.value)}
                 />
                 <button style={buttonStyles} className="nav-button" onClick={handleSendClick}>Send</button>
-                <textarea className="nav-textarea" placeholder="Enter chat context" readOnly>hi</textarea>
+                <textarea className="nav-textarea custom-scrollbar"  placeholder="Enter chat context" readOnly value={contextualChatArea} onChange={(e) => setContextualChatArea(e.target.value)}></textarea>
                 {/* Implement the percentage bar as needed */}
             </div>
 
@@ -69,16 +124,38 @@ const SideNavBar = () => {
 
             {/* Menu Buttons Section */}
             <div className="nav-item">
-                <button style={buttonStyles} className="nav-button">Prompt Menu</button>
-                <button style={buttonStyles} className="nav-button">Data Menu</button>
+                <button style={buttonStyles} className="nav-button" onClick={() => setShowPromptPopup(true)}>Prompt Menu</button>
+                <button style={buttonStyles} className="nav-button" onClick={() => setShowDataPopup(true)}>Data Menu</button>
             </div>
 
             {/* Context Section */}
             <div className="nav-item">
-                <label className="nav-label">Context</label>
+                <label className="nav-label">Context Name</label>
+                <input 
+                    className="nav-input" 
+                    type="text" 
+                    placeholder="Enter context name" 
+                    value={contextInput}
+                    onChange={(e) => setContextInput(e.target.value)}
+                />
+                <button style={buttonStyles} className="nav-button" onClick={() => handleSaveContext(contextInput)}>Save Context</button>
+                <label className="nav-label">Select Context</label>
                 <ul className="nav-list">
-                    {/* Dynamically add context items here */}
+                    {contextList.map((contextName, index) => (
+                        <li 
+                            key={index} 
+                            className={`nav-list-item ${contextName === currentContext ? 'current-context' : ''}`}
+                            onClick={() => {
+                                loadContext(contextName);
+                                setCurrentContext(contextName);
+                                setContextInput(contextName);
+                            }}
+                        >
+                            {contextName}
+                        </li>
+                    ))}
                 </ul>
+
             </div>
         </div>
     );

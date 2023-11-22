@@ -70,6 +70,7 @@ app.listen(port, () => {
 
 const messageFilePath = path.join(__dirname, 'messageContext.json');
 
+
 app.post('/api/saveContext', (req, res) => {
     const { messageTree, pdfFileReferences, contextName } = req.body;
   
@@ -115,6 +116,35 @@ app.post('/api/saveContext', (req, res) => {
     });
   });
   
+  app.get('/api/contexts', (req, res) => {
+    console.log('Received request to fetch context names'); // Log when a request is received
+
+    const contextDirectory = path.join(__dirname);
+    fs.readdir(contextDirectory, (err, files) => {
+        if (err) {
+            console.error('Error reading the directory:', err); // Log the error if directory reading fails
+            return res.status(500).send('Error reading the directory');
+        }
+        
+        console.log('Scanning for context files...'); // Log the process of scanning for context files
+        const contextFiles = files
+            .filter(file => file.startsWith('context_') && file.endsWith('.json'))
+            .map(file => {
+                console.log('Found context file:', file); // Log each found context file
+                return file.replace('context_', '').replace('.json', '');
+            });
+
+        if (contextFiles.length === 0) {
+            console.log('No context files found'); // Log if no context files are found
+        } else {
+            console.log('Context names retrieved:', contextFiles); // Log the list of context names
+        }
+
+        res.json(contextFiles);
+    });
+});
+
+
 
   app.post('/api/uploadPdf', bodyParser.json({ limit: '50mb' }), async (req, res) => {
     const { base64Pdf, fileName } = req.body;

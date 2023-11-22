@@ -75,7 +75,7 @@ const textareaStyles = {
   resize: "none",
   outline: "none",
   backgroundColor: "#222",
-  color: "ccc",
+  color: "#ccc", // Include the hash symbol before the color code
   border: "none",
   borderRadius: "4px",
   fontSize: "16px",
@@ -84,14 +84,12 @@ const textareaStyles = {
   zIndex: 1000,
   transition: "all 0.2s",
   boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.2)",
-  margin: "8px 0", // Add some vertical spacing
+  margin: "8px 0",
   "&:focus": {
     boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.3)",
   },
-  "::placeholder": {
-    color: "#666",
-  },
 };
+
 
 const customScrollbarStyles = {
   '&::-webkit-scrollbar': {
@@ -1247,7 +1245,7 @@ const DataPopup = React.forwardRef(({ onClose, onDataSave, dataStrings = [], set
   };
   const handleSetSystemPrompt = () => {
     const data = { name: dataName, content: inputValue };
-    setSystemPrompt("\n\n# SYSTEM PROMPT:\n\n" + data + ":\n\n");
+    setSystemPrompt("\n\n# SYSTEM PROMPT:\n\n" + data.content + ":\n\n");
   };
   
 
@@ -1309,7 +1307,8 @@ const DataPopup = React.forwardRef(({ onClose, onDataSave, dataStrings = [], set
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: data.name === (systemPrompt?.name || '') ? "#4d4000" : (hoverIndex === index ? "#484848" : "#333"),
+    backgroundColor: systemPrompt?.includes(data.content) ? "#4d4000" : (hoverIndex === index ? "#484848" : "#333"),
+
     padding: '10px 15px',
     color: 'ccc',
     cursor: 'pointer',
@@ -2020,11 +2019,11 @@ useEffect(() => {
   
       // Update currentMessage and currentBotMessage
       setCurrentMessage(lastLeaf);
-      if (lastLeaf.sender === "bot") {
-        setCurrentBotMessage(lastLeaf);
-      } else {
-        setCurrentBotMessage(null);
-      }
+      // if (lastLeaf.sender === "bot") {
+      //   setCurrentBotMessage(lastLeaf);
+      // } else {
+      //   setCurrentBotMessage(null);
+      // }
   
       console.log(`Chat context '${contextName}' loaded successfully`);
     } catch (error) {
@@ -2936,7 +2935,18 @@ const triggerFileInputClick = () => {
     onClose={() => setShowDataPopup(false)}
   />
 )}
-<SideNavBar />
+<SideNavBar 
+systemPrompt={systemPrompt}
+pdfs={pdfs}
+currentMessage={currentMessage}
+messageTree={messages}
+setSystemPrompt={setSystemPrompt}
+loadContext={loadChatContext}
+saveContext={saveChatContext}
+setShowPromptPopup={setShowPromptPopup}
+setShowDataPopup={setShowDataPopup}
+useApi={settings['Use Api']}
+/>
       <div
         style={{
           display: "flex",

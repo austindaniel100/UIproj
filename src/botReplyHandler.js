@@ -122,6 +122,49 @@ const generateConversationLists = (currentMessage, messagesTree) => {
   }
 
   };
+
+  const callApiContext = async (input, currentMessage, messagesTree, pdfs, useApi) => {
+    let fullPrompt = "***********CONTEXT = [[[";
+    const pdfsString = await compilePdfContext(pdfs);
+      console.log(pdfsString);
+      // const pdfsString = ""
+
+      const conversationHistory = getConversationHistory(currentMessage, messagesTree);
+      console.log(conversationHistory);
+      if (pdfsString !== "") {
+        console.log("HOW????");
+        fullPrompt = fullPrompt +  "#PDFS: " + pdfsString
+      }
+      if (conversationHistory !== "") {
+        console.log("HOW????!!");
+        fullPrompt = fullPrompt +  "#Conversation History: " + conversationHistory
+      }
+      fullPrompt = fullPrompt + "]]]\n*******Mission:\n" + input + "\nresponse: ";
+      console.log("\n\nFULL")
+      console.log(fullPrompt);
+    try {
+      const resp = await fetch('https://api.promptperfect.jina.ai/tcok9OGA8BjFBzPp2KqR', {
+        headers: {
+          'x-api-key': `token ${YOUR_GENERATED_SECRET}`,
+          'content-type': 'application/json'
+        }, 
+        body: JSON.stringify({"parameters": {"prompt":fullPrompt}}),
+        method: 'POST'
+      });
+
+    if (!resp.ok) {
+      throw new Error('Http error: ' + resp.status);
+    }
+
+    const data = await resp.json();
+    console.log(data);
+    return data;
+  } catch (error) {
+    console.log("failed to fetch bot reply: ", error);
+    return "";
+  }
+
+  };
   
 
 
@@ -233,5 +276,6 @@ const getBotReply = async (input, currentMessage, messagesTree, pdfs, useApi, up
 export default {
   getBotReply,
   callApi,
-  callApiNoStream
+  callApiNoStream,
+  callApiContext,
 };

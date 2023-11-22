@@ -313,3 +313,165 @@
 .chat-input-container .nav-button {
     flex-grow: 1; /* Allows the button to grow and take up 25% of the space */
 }
+
+.nav-list {
+    list-style-type: none; /* Removes default list styling */
+    margin: 0; /* Removes default margin */
+    padding: 0; /* Removes default padding */
+    overflow-y: auto; /* Enables scrolling if list is long */
+    max-height: 200px; /* Adjust as per the design, sets maximum height for the list */
+    background-color: #2a2a2a; /* Slightly lighter or darker than .nav-item for contrast */
+    box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.3); /* Subtle inner shadow at the top for depth */
+    border-radius: 4px; /* Optional: Rounds the corners */
+    margin-top: 10px; /* Space above the list */
+    margin-bottom: 10px; /* Space below the list */
+}
+
+/* Style for scrollbar (optional, for modern look) */
+.nav-list::-webkit-scrollbar {
+    width: 8px; /* Scrollbar width */
+}
+
+.nav-list::-webkit-scrollbar-thumb {
+    background-color: #484848; /* Scrollbar color */
+    border-radius: 4px; /* Round scrollbar edges */
+}
+
+.nav-list::-webkit-scrollbar-track {
+    background-color: #333; /* Scrollbar track color */
+}
+
+.nav-list-item {
+    background-color: #333; /* Grey background */
+    color: white; /* White text color */
+    padding: 10px 15px; /* Padding for spacing */
+    cursor: pointer; /* Cursor changes to pointer on hover */
+    width: 100%; /* Spanning the full width of the navbar */
+    box-sizing: border-box; /* Ensures padding doesn't affect the width */
+    border-bottom: 1px solid #484848; /* Border for separation */
+    text-decoration: none; /* No underline on text */
+    transition: background-color 0.2s; /* Smooth transition for hover effect */
+}
+
+.nav-list-item:hover {
+    background-color: #484848; /* Darker grey on hover */
+}
+
+/* Styling for the navbar */
+.side-nav {
+    height: 90%; /* Set the height to 90% of the viewport */
+    top: 0; /* Align to the top */
+    bottom: auto; /* Prevent stretching to the bottom */
+    border-bottom-right-radius: 25px; /* Large rounded corner at the bottom right */
+    position: fixed; /* Keep it fixed during scrolling */
+    /* ... other existing styles ... */
+}
+
+/* Style to create a feathered transparency effect */
+.side-nav::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 15%; /* Height of the feathered effect */
+    background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)); /* Adjust the color to match your sidebar's color scheme */
+}
+
+/* Styling for .nav-list */
+.nav-list {
+    list-style-type: none; /* Removes default list styling */
+    margin: 10px 5px; /* Adjust margins as needed */
+    padding: 0; /* Removes default padding */
+    overflow-y: auto; /* Enables scrolling if list is long */
+    max-height: 200px; /* Adjust as per the design */
+    background-color: #2a2a2a; /* Background color */
+    border-radius: 8px; /* Slightly rounded corners for the entire list */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    /* ... other existing styles ... */
+}
+
+/* Styling for .nav-list-item */
+.nav-list-item {
+    background-color: #333; /* Item background color */
+    color: white; /* Text color */
+    padding: 10px 15px; /* Padding for spacing */
+    cursor: pointer; /* Cursor changes to pointer on hover */
+    border-bottom: 1px solid #484848; /* Border for separation between items */
+    transition: background-color 0.2s; /* Transition for hover effect */
+
+    /* Rounded corners for first and last item */
+    &:first-child {
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    &:last-child {
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+}
+
+.nav-list-item:hover {
+    background-color: #484848; /* Darker grey on hover */
+    /* ... other existing hover styles ... */
+}
+
+/* Optional: Style for scrollbar for modern look */
+.nav-list::-webkit-scrollbar {
+    width: 8px;
+    /* ... other scrollbar styles ... */
+}
+.side-nav::after {
+    /* ... existing styles ... */
+    height: 10%; /* Reduced height */
+}
+.side-nav {
+    /* ... existing styles ... */
+    padding-bottom: 50px; /* Add more padding at the bottom */
+}
+.side-nav::after {
+    /* ... existing styles ... */
+    z-index: -1; /* Ensure it's behind the content */
+}
+/* Common scrollbar styles */
+.custom-scrollbar {
+    /* Scrollbar track */
+    &::-webkit-scrollbar-track {
+        background-color: #333;
+    }
+
+    /* Scrollbar handle */
+    &::-webkit-scrollbar-thumb {
+        background-color: #484848;
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+}
+
+
+.current-context {
+    background-color: #3a3963; /* Slightly lighter color for the current context */
+}
+
+
+/* Styling for .nav-list-item */
+.nav-list-item {
+    background-color: #333; /* Default background color */
+    /* ... other styles ... */
+}
+
+.nav-list-item:hover {
+    background-color: #484848; /* Darker grey on hover */
+}
+
+/* Styling for the currently selected context */
+.current-context {
+    background-color: #3a3963; /* Slightly lighter color for the current context */
+}
+
+.current-context:hover {
+    background-color: #4d4c75; /* Different color on hover for the selected context */
+}
