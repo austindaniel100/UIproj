@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Button, TextareaAutosize } from "@mui/material";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -10,7 +10,15 @@ import SettingsPopup from './SettingsPopup'; // Adjust the path as per your file
 
 
 import * as d3 from "d3";
-
+const inputStyle = {
+  width: '100%',
+  padding: '10px 15px',
+  marginBottom: '10px',
+  border: '1px solid #555',
+  borderRadius: '4px',
+  backgroundColor: "#222",
+  color: '#ccc',
+};
 const components = {
   code({ node, inline, className, children, ...props }) {
     const match = /language-(\w+)/.exec(className || "");
@@ -66,7 +74,7 @@ const textareaStyles = {
   resize: "none",
   outline: "none",
   backgroundColor: "#222",
-  color: "white",
+  color: "ccc",
   border: "none",
   borderRadius: "4px",
   fontSize: "16px",
@@ -308,7 +316,7 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
       .attr("rx", 15)
       .attr("ry", 15)
       .attr("fill", (d) => (d.data.sender === "bot" ? "#2e2e2e" : "#1a3b5d"))
-      .attr("stroke", (d) => (d.data.id === current?.id ? "white" : "none"))
+      .attr("stroke", (d) => (d.data.id === current?.id ? "#ccc" : "none"))
       .attr("stroke-width", (d) => (d.data.id === current?.id ? "2" : "0"))
       .attr("x", (d) => d.x - 50)
       .attr("y", (d) => d.y - 20)
@@ -500,9 +508,147 @@ g.selectAll(".click-capture")
   );
 }
 
+const titleStyle = {
+  fontSize: '18px',
+  fontWeight: 'bold',
+  marginBottom: '10px',
+  color: '#2c3e50', // Dark color for title text
+};
+
+const subtitleStyle = {
+  fontSize: '14px',
+  fontWeight: 'bold',
+  marginTop: '10px',
+  marginBottom: '5px',
+  color: '#34495e', // Slightly lighter color for subtitles
+};
 
 
-const PromptPopup = React.forwardRef(({ onClose, onSend, onSendWithContext, prompts = [], setPrompts, savePromptsToServer }, ref) => {
+
+const toggleButtonTextStyle = {
+  margin: 0,
+  paddingLeft: '5px',
+  paddingRight: '5px',
+};
+
+
+const parametersColumnStyle = {
+  flex: 1,
+  marginRight: '5px', // Add some spacing between the columns
+};
+
+const dataStringsColumnStyle = {
+  flex: 1,
+  marginLeft: '5px', // Add some spacing between the columns
+};
+
+
+
+const popupContainerStyle = {
+  ...popupStyle,
+  display: "flex",
+  flexDirection: "row",
+  width: '1000px', // Fixed width for the popup
+  maxWidth: '100%', // Ensure it doesn't exceed the screen width
+  // Other styling as needed
+};
+
+const promptListStyle = {
+  flex: 1,
+  overflowY: 'auto',
+  maxHeight: '400px',
+  borderRight: '1px solid #555',
+  padding: '10px',
+  backgroundColor: '#2C2F33', // Dark background for contrast
+  color: '#ecf0f1', // Light text for readability
+};
+
+const detailSectionStyle = {
+  flex: 2,
+  padding: '20px',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'stretch',
+  backgroundColor: '#2C2F33', // Light background for the detail section
+};
+
+const rightColumnStyle = {
+  backgroundColor: "#23282d", // Slightly darker background
+boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // Subtle drop shadow
+borderRadius: "4px", // Optional, but might look good with the shadow
+border: "none", // Remove the border since we're using shadows
+  flex: 2,
+  padding: '20px',
+  backgroundColor: '#212121', // dark background for contrast
+  display: 'flex',
+flexDirection: 'column',
+justifyContent: 'flex-start', // aligns children to the top of the container
+};
+const rightColumnContainerStyle = {
+  display: 'flex',
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+};
+
+
+const buttonsContainerStyle = {
+  display: 'flex',
+  justifyContent: 'space-between', // Evenly spaces buttons
+  marginTop: '20px',
+};
+
+
+
+
+const listContainerStyle = {
+  overflowY: 'auto', // Make scrollable
+  maxHeight: '400px', // Fixed height for scroll
+  padding: '10px',
+  backgroundColor: "#212121",
+color: '#ecf0f1', // Light text color for readability
+  display: 'flex',
+  flexDirection: 'column', // Ensure elements are stacked verticallyflexDirection: 'column',
+  justifyContent: 'flex-start', // aligns children to the top of the container
+  // other necessary styles
+};
+
+const scrollbarStyles = `
+.dark-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.dark-scrollbar::-webkit-scrollbar-thumb {
+  background: #454545;
+  border-radius: 5px;
+}
+.dark-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+.dark-scrollbar::-webkit-scrollbar-track {
+  background: #333;
+  border-radius: 5px;
+}
+.dark-scrollbar {
+  scrollbar-color: #444 #333;
+  scrollbar-width: thin;
+}
+`;
+const searchInputStyle = {
+padding: '10px 15px',
+width: 'calc(100%)', // Adjust width to account for padding and prevent overflow
+boxSizing: 'border-box', // Include padding and border in the element's width
+marginBottom: '0', // Remove any bottom margin
+border: 'none', // Remove borders
+borderBottom: '1px solid #555', // Add a bottom border to separate from the list
+backgroundColor: "#292b2b",
+color: '#ccc',
+fontSize: '16px',
+zIndex: 1000,
+};
+
+
+
+const PromptPopup = React.forwardRef(({ onClose, onSend, onSendWithContext, prompts = [], setPrompts, savePromptsToServer, dataStrings, setDataStrings, initialDataStrings = []}, ref) => {
   const [inputValue, setInputValue] = useState("");
   const [promptName, setPromptName] = useState("");
   const [selectedPrompt, setSelectedPrompt] = useState(null);
@@ -519,6 +665,43 @@ const PromptPopup = React.forwardRef(({ onClose, onSend, onSendWithContext, prom
   const [promptToDelete, setPromptToDelete] = useState(null);
 const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
+const updateDataString = (name, value) => {
+  setDataStrings(prevStrings => prevStrings.map(ds => ds.name === name ? { ...ds, content: value } : ds));
+};
+
+const convertArrayToDict = (dataArray) => {
+  const dict = {};
+  dataArray.forEach(item => {
+    if(item.name) {
+      dict[item.name] = item.content;
+    }
+  });
+  return dict;
+};
+
+const initialDict = convertArrayToDict(initialDataStrings);
+  const [dataStringDict, setDataStringDict] = useState(initialDict);
+
+  const updateDataStringDict = (input) => {
+    const regex = /\[([^\]]+)\]/g;
+    let match;
+
+    const newDataStringDict = { ...dataStringDict };
+
+    while ((match = regex.exec(input)) !== null) {
+      if (!newDataStringDict.hasOwnProperty(match[1])) {
+        newDataStringDict[match[1]] = ""; // Add new empty string entry if not exist
+      }
+    }
+
+    setDataStringDict(newDataStringDict);
+  };
+
+  // Call this function when inputValue changes
+  useEffect(() => {
+    updateDataStringDict(inputValue);
+  }, [inputValue]);
+
 const confirmDelete = (confirm) => {
   if (confirm) {
     // Code to delete the prompt
@@ -534,18 +717,25 @@ const handleDeletePrompt = (prompt) => {
   savePromptsToServer();
 };
 
-  const handleMessageSend = () => {
-    let finalMessage = inputValue;
-  
-    // Replace each placeholder with its corresponding parameter value
-    Object.keys(parameters).forEach(param => {
-      const regex = new RegExp(`{${param}}`, 'g');
-      finalMessage = finalMessage.replace(regex, parameters[param]);
-    });
-  
-    // Now send this finalMessage
-    onSend(finalMessage);
-  };
+const handleMessageSend = () => {
+  let finalMessage = inputValue;
+
+  // Replace parameter placeholders
+  Object.keys(parameters).forEach(param => {
+    const regex = new RegExp(`{${param}}`, 'g');
+    finalMessage = finalMessage.replace(regex, parameters[param]);
+  });
+
+  // Replace data string placeholders
+  finalMessage = finalMessage.replace(/\[(\w+)\]/g, (match, dataStringName) => {
+    const dataString = dataStrings.find(d => d.name === dataStringName);
+    return dataString ? dataString.content : match; // Replace with content or leave placeholder
+  });
+
+  onSend(finalMessage); // Send the final message
+};
+
+
 
   const handleMessageSendContext = () => {
     let finalMessage = inputValue;
@@ -651,6 +841,25 @@ const [displayedPrompts, setDisplayedPrompts] = useState(prompts);
   
     setDisplayedPrompts(sortedPrompts);
   }, [prompts, searchInput, sortByRecency]); // Depend on sortByRecency as well
+
+  useEffect(() => {
+    // Function to convert array to dictionary
+    const convertArrayToDict = (dataArray) => {
+      const dict = {};
+      dataArray.forEach(item => {
+        if (item.name) {
+          dict[item.name] = item.content;
+        }
+      });
+      return dict;
+    };
+  
+    // Update the dictionary whenever the dataStrings array changes
+    const newDict = convertArrayToDict(dataStrings);
+    setDataStringDict(newDict);
+  
+  }, [dataStrings]); // Dependency array includes dataStrings to trigger effect when it changes
+  
   
 
   const saveNewPrompt = () => {
@@ -671,27 +880,121 @@ const [displayedPrompts, setDisplayedPrompts] = useState(prompts);
     setShowConfirmOverwrite(false);
     // resetForm();
   };
-  const resetForm = () => {
-    setPromptName("");
-    setInputValue("");
-    setParameters({});
-    setOverwritePromptName("");
+
+  const parseDataStringReferences = (input) => {
+    const regex = /\[([^\]]+)\]/g;
+    const dataStringRefs = new Set();
+    let match;
+  
+    while ((match = regex.exec(input)) !== null) {
+      if (dataStringDict[match[1]]) {
+        dataStringRefs.add(match[1]);
+      }
+    }
+    console.log("datastringdict: ", dataStringDict);
+  
+    console.log("Parsed References: ", Array.from(dataStringRefs)); // Debugging log
+    return Array.from(dataStringRefs);
+  };
+  
+  // Remember to check this every time inputValue changes.
+  
+  
+  // Inside PromptPopup component
+  // const [inputValue, setInputValue] = useState(""); // Assuming this is the state for your input
+  const dataStringRefs = useMemo(() => parseDataStringReferences(inputValue), [inputValue, dataStringDict]);
+
+  const handleDataStringChange = (dataStringName, value) => {
+    setDataStringDict(prevDict => ({ ...prevDict, [dataStringName]: value }));
+  };
+  
+  const renderDataStringInputs = () => {
+    const regex = /\[([^\]]+)\]/g;
+    let match;
+    const dataStringInputs = [];
+    while ((match = regex.exec(inputValue)) !== null) {
+      if (dataStrings.some(d => d.name === match[1])) {
+        const dataStringName = match[1]; // Store the matched name
+  
+        dataStringInputs.push(
+          <div key={dataStringName} onClick={() => dataStringName && openPopup(dataStringName)}>
+            <label>{dataStringName}: </label>
+            <input
+              type="text"
+              value={dataStringDict[dataStringName] || ''}
+              onChange={(e) => handleDataStringChange(match[1], e.target.value)}
+              style={textareaStyles}
+              readOnly
+            />
+          </div>
+        );
+      }
+  
+    }
+  
+    return dataStringInputs;
   };
 
-  const titleStyle = {
-    fontSize: '18px',
-    fontWeight: 'bold',
-    marginBottom: '10px',
-    color: '#2c3e50', // Dark color for title text
+  const DataStringPopup = ({ isOpen, onClose, onSave, initialValue }) => {
+    const [inputValue, setInputValue] = useState(initialValue);
+  
+    useEffect(() => {
+      setInputValue(initialValue); // Update input value when initialValue changes
+    }, [initialValue]);
+  
+    const handleSave = () => {
+      onSave(inputValue);
+      onClose();
+    };
+  
+    if (!isOpen) return null;
+  
+    return (
+      <div style={{...popupStyle, display: 'flex', justifyContent: 'center'}} onClick={onClose}>
+        <div style={{...popupContentStyle, width: '600px', maxWidth: '90%', height: '1200px', display: 'flex', justifyContent: 'flex-start', flexDirection: 'column',flexWrap: 'wrap', wordBreak: 'break-word'}} onClick={e => e.stopPropagation()}>
+          <div style={{...titleStyle, marginBottom: '20px'}}>Edit Data String</div>
+          <div className='dark-scrollbar'>
+          <style>{scrollbarStyles}</style>
+          
+          <TextareaAutosize
+            minRows={13}
+            maxRows={13}
+            value={inputValue}
+            className='dark-scrollbar'
+            onChange={(e) => setInputValue(e.target.value)}
+            style={{...textareaStyles, width: '85%', height: '75%'}}
+          />
+          </div>
+          
+          <div style={{display: 'flex', justifyContent: 'center', marginTop: '10px'}}>
+            <button onClick={handleSave} style={buttonStyles}>Save</button>
+            <button onClick={onClose} style={buttonStyles}>Close</button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
-  const subtitleStyle = {
-    fontSize: '14px',
-    fontWeight: 'bold',
-    marginTop: '10px',
-    marginBottom: '5px',
-    color: '#34495e', // Slightly lighter color for subtitles
-  };
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+const [currentDataString, setCurrentDataString] = useState('');
+
+const openPopup = (dataStringName) => {
+  setCurrentDataString(dataStringName);
+  setIsPopupOpen(true);
+};
+  
+  
+
+
+
+
+  
+  // const resetForm = () => {
+  //   setPromptName("");
+  //   setInputValue("");
+  //   setParameters({});
+  //   setOverwritePromptName("");
+  // };
 
   const toggleButtonStyle = {
     cursor: 'pointer',
@@ -704,77 +1007,9 @@ const [displayedPrompts, setDisplayedPrompts] = useState(prompts);
     outline: 'none',
     transition: 'background-color 0.3s',
   };
-  
-  const toggleButtonTextStyle = {
-    margin: 0,
-    paddingLeft: '5px',
-    paddingRight: '5px',
-  };
-  
-  
-
-
-  const promptItemStyle = (prompt) => ({
-    padding: "10px 15px",
-    cursor: "pointer",
-    backgroundColor: selectedPrompt === prompt.name ? "#484848" : "#333",
-    color: "#ccc",
-    borderBottom: "1px solid #555",
-    '&:hover': {
-      backgroundColor: '#484848',
-    }
-  });
-
-  const popupContainerStyle = {
-    ...popupStyle,
-    display: "flex",
-    flexDirection: "row",
-    width: '1000px', // Fixed width for the popup
-    maxWidth: '100%', // Ensure it doesn't exceed the screen width
-    // Other styling as needed
-  };
-
-  const promptListStyle = {
-    flex: 1,
-    overflowY: 'auto',
-    maxHeight: '400px',
-    borderRight: '1px solid #555',
-    padding: '10px',
-    backgroundColor: '#2C2F33', // Dark background for contrast
-    color: '#ecf0f1', // Light text for readability
-  };
-
-  const detailSectionStyle = {
-    flex: 2,
-    padding: '20px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'stretch',
-    backgroundColor: '#2C2F33', // Light background for the detail section
-  };
-
-  const rightColumnStyle = {
-    backgroundColor: "#23282d", // Slightly darker background
-  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // Subtle drop shadow
-  borderRadius: "4px", // Optional, but might look good with the shadow
-  border: "none", // Remove the border since we're using shadows
-    flex: 2,
-    padding: '20px',
-    backgroundColor: '#212121', // dark background for contrast
-    display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'flex-start', // aligns children to the top of the container
-  };
-  
-  const buttonsContainerStyle = {
-    display: 'flex',
-    justifyContent: 'space-between', // Evenly spaces buttons
-    marginTop: '20px',
-  };
 
   
-
-  // Modify listItemStyle to serve as a container style
+// Modify listItemStyle to serve as a container style
 const listItemContainerStyle = (index) => ({
   display: 'flex',
   justifyContent: 'space-between',
@@ -783,62 +1018,32 @@ const listItemContainerStyle = (index) => ({
   padding: '10px 15px',
   cursor: 'pointer',
   borderBottom: "1px solid #555",
-});
-
-// Inline style for delete button, visibility controlled by hover
-const deleteButtonStyle = (index) => ({
+  });
+  
+  // Inline style for delete button, visibility controlled by hover
+  const deleteButtonStyle = (index) => ({
   display: hoverIndex === index ? 'block' : 'none',
   cursor: 'pointer',
   color: '#ccc',
   marginLeft: '10px',
-});
-
-
-const listContainerStyle = {
-    overflowY: 'auto', // Make scrollable
-    maxHeight: '400px', // Fixed height for scroll
-    padding: '10px',
-    backgroundColor: "#212121",
-  color: '#ecf0f1', // Light text color for readability
-    display: 'flex',
-    flexDirection: 'column', // Ensure elements are stacked verticallyflexDirection: 'column',
-    justifyContent: 'flex-start', // aligns children to the top of the container
-    // other necessary styles
+  });
+  const labelStyle = {
+    fontWeight: 'bold',
+    marginBottom: '5px',
   };
 
-  const scrollbarStyles = `
-  .dark-scrollbar::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  .dark-scrollbar::-webkit-scrollbar-thumb {
-    background: #454545;
-    border-radius: 5px;
-  }
-  .dark-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
-  .dark-scrollbar::-webkit-scrollbar-track {
-    background: #333;
-    border-radius: 5px;
-  }
-  .dark-scrollbar {
-    scrollbar-color: #444 #333;
-    scrollbar-width: thin;
-  }
-`;
-const searchInputStyle = {
-  padding: '10px 15px',
-  width: 'calc(100%)', // Adjust width to account for padding and prevent overflow
-  boxSizing: 'border-box', // Include padding and border in the element's width
-  marginBottom: '0', // Remove any bottom margin
-  border: 'none', // Remove borders
-  borderBottom: '1px solid #555', // Add a bottom border to separate from the list
-  backgroundColor: "#292b2b",
-  color: '#ccc',
-  fontSize: '16px',
-  zIndex: 1000,
-};
+  const handleSaveDataString = (updatedValue) => {
+    const updatedDataStrings = dataStrings.map(ds => {
+      if (ds.name === currentDataString) {
+        return { ...ds, content: updatedValue };
+      }
+      return ds;
+    });
+  
+    setDataStrings(updatedDataStrings);
+  };
+  
+
 
 
 
@@ -923,32 +1128,41 @@ const searchInputStyle = {
           value={inputValue}
           onChange={handleInputChange}
         />
+        <div style={rightColumnContainerStyle}>
+      <div style={parametersColumnStyle}>
+        <div style={labelStyle}>Parameters</div>
         {parsedParameters.map((param, index) => (
           <div key={index}>
-            <label>{param}: </label>
-            <input
-              type="text"
-              value={parameters[param] || ""}
-              onChange={(e) => handleParameterChange(param, e.target.value)}
-              style={textareaStyles}
-            />
+          <label>{param}: </label>
+          <input
+            type="text"
+            value={parameters[param] || ""}
+            onChange={(e) => handleParameterChange(param, e.target.value)}
+            style={textareaStyles}
+          />
           </div>
-        ))}
-        <div style={buttonsContainerStyle}>
-    <Button onClick={handleSavePromptWithParameters} style={buttonStyles}>
-      Save Prompt
-    </Button>
-    <Button onClick={handleMessageSend} style={buttonStyles}>
-      Send
-    </Button>
-    <Button onClick={handleMessageSendContext} style={buttonStyles}>
-      Send with Context
-    </Button>
-    <Button onClick={onClose} style={buttonStyles}>
-      Close
-    </Button>
-  </div>
+            ))}
       </div>
+      <div style={dataStringsColumnStyle}>
+    <div style={labelStyle}>Data Strings</div>
+    {renderDataStringInputs()}
+  </div>
+  </div>
+            <div style={buttonsContainerStyle}>
+              <Button onClick={handleSavePromptWithParameters} style={buttonStyles}>
+                Save Prompt
+              </Button>
+              <Button onClick={handleMessageSend} style={buttonStyles}>
+                Send
+              </Button>
+              <Button onClick={handleMessageSendContext} style={buttonStyles}>
+                Send with Context
+              </Button>
+              <Button onClick={onClose} style={buttonStyles}>
+                Close
+              </Button>
+            </div>
+          </div>
       {showConfirmOverwrite && (
         <div style={confirmOverwriteStyle}>
           <p>Do you want to overwrite this prompt?</p>
@@ -975,7 +1189,14 @@ const searchInputStyle = {
     </div>
   </div>
 )}
+<DataStringPopup
+  isOpen={isPopupOpen}
+  onClose={() => setIsPopupOpen(false)}
+  onSave={(value) => updateDataString(currentDataString, value)}
+  initialValue={dataStrings.find(ds => ds.name === currentDataString)?.content || ''}
+/>
     </div>
+    
   );
   
 });
@@ -997,6 +1218,189 @@ const confirmOverwriteStyle = {
 const confirmDeleteStyle = {
   ... confirmOverwriteStyle,
 };
+
+
+const DataPopup = React.forwardRef(({ onClose, onDataSave, dataStrings = [], setDataStrings, setSystemPrompt, systemPrompt = "" }, ref) => {
+  const [inputValue, setInputValue] = useState("");
+  const [dataName, setDataName] = useState("");
+  const [selectedData, setSelectedData] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [displayedData, setDisplayedData] = useState(dataStrings);
+
+  useEffect(() => {
+    console.log('DataStrings:', dataStrings);
+    // Filter data strings based on search input and update displayed data
+    const filteredData = dataStrings.filter(data => 
+      data.name.toLowerCase().includes(searchInput.toLowerCase())
+    );
+    setDisplayedData(filteredData);
+  }, [searchInput, dataStrings]); 
+
+  
+  const handleDataStringChange = (index, key, value) => {
+    setDataStrings((prevDataStrings) => {
+      const newDataStrings = [...prevDataStrings];
+      newDataStrings[index][key] = value;
+      return newDataStrings;
+    });
+  };
+  const handleSetSystemPrompt = () => {
+    const data = { name: dataName, content: inputValue };
+    setSystemPrompt("\n\n# SYSTEM PROMPT:\n\n" + data + ":\n\n");
+  };
+  
+
+  const handleDataSave = () => {
+    const newData = { name: dataName, content: inputValue };
+    const existingDataIndex = dataStrings.findIndex(d => d.name === dataName);
+  
+    console.log('Before Save:', dataStrings); // Log the data before save/update operation
+  
+    if (existingDataIndex !== -1) {
+      // Update existing data
+      const updatedDataStrings = [...dataStrings];
+      updatedDataStrings[existingDataIndex] = newData;
+      setDataStrings(updatedDataStrings);
+      console.log('Updated Data:', updatedDataStrings); // Log the data after update
+    } else {
+      // Add new data
+      const newDataStrings = [...dataStrings, newData];
+      setDataStrings(newDataStrings);
+      console.log('Added New Data:', newDataStrings); // Log the data after new addition
+    }
+  
+    onDataSave(newData); // Optional, can be used for additional side effects
+  };
+  
+
+  const [hoverIndex, setHoverIndex] = useState(null); // State to track hovered item
+
+  const handleDataSelect = (data) => {
+    setDataName(data.name);
+    setInputValue(data.content);
+  };
+
+  const handleDataDelete = (dataToDelete) => {
+    setDataStrings(dataStrings.filter(d => d.name !== dataToDelete.name));
+    // Additional actions if needed
+  };
+
+  
+
+
+  const handleSearchChange = (event) => {
+    setSearchInput(event.target.value);
+  };
+
+
+
+  const leftColumnStyle = {
+    flex: 1,
+    overflowY: 'auto',
+    maxHeight: '400px',
+    borderRight: '1px solid #555',
+    padding: '10px',
+    backgroundColor: '#2C2F33', // Dark background for contrast
+    color: '#ecf0f1', // Light text for readability
+  };
+  
+  const listItemContainerStyle = (data, index) => ({
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: data.name === (systemPrompt?.name || '') ? "#4d4000" : (hoverIndex === index ? "#484848" : "#333"),
+    padding: '10px 15px',
+    color: 'ccc',
+    cursor: 'pointer',
+    borderBottom: "1px solid #555",
+  });
+
+  const goldButtonStyle = {
+    ...buttonStyles,
+    backgroundColor: "#4d4000", // Gold color for the button
+    color: '#ccc', // Dark text for contrast 
+    // Other styling as needed
+  };
+
+  const deleteButtonStyle = (index) => ({
+    display: hoverIndex === index ? 'block' : 'none',
+    cursor: 'pointer',
+    color: '#ccc',
+    marginLeft: '10px',
+  });
+  
+  
+  
+
+  return (
+    <div ref={ref} style={popupContainerStyle}>
+      <div style={listContainerStyle} className="dark-scrollbar">
+      <input
+          type="text"
+          placeholder="Search..."
+          value={searchInput}
+          onChange={handleSearchChange}
+          style={searchInputStyle}
+        />
+        {
+  displayedData.map((data, index) => (
+    <div 
+      key={`${data.name}-${index}`} // Unique key for each item
+      style={listItemContainerStyle(data, index)}
+      onMouseEnter={() => setHoverIndex(index)}
+      onMouseLeave={() => setHoverIndex(null)}
+      onClick={() => handleDataSelect(data)}
+    >
+      <div>{data.name}</div>
+      <div
+        style={deleteButtonStyle(index)}
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent triggering data select
+          handleDataDelete(data);
+        }}
+        title="Delete this data"
+      >
+        X
+      </div>
+    </div>
+  ))
+}
+
+      </div>
+      
+      
+      <div style={{ ...detailSectionStyle, background: 'transparent' }}>
+      <div style={subtitleStyle}>Name</div>
+        <input
+          type="text"
+          placeholder="Data Name"
+          value={dataName}
+          onChange={(e) => setDataName(e.target.value)}
+          style={{ ...textareaStyles, width: '30%', height: '100%'}}
+        />
+      <div style={subtitleStyle}>Data</div>
+      <style>{scrollbarStyles}</style>
+        <TextareaAutosize
+        className="dark-scrollbar"
+          minRows={3}
+          maxRows={5}
+          placeholder="Data Content"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          style={{...textareaStyles, width: '85%', height: '100%'}}
+        />
+        <div style={{ display: 'flex', gap: '10px' }}> {/* Added for horizontal layout */}
+        <Button onClick={handleDataSave} style={buttonStyles}>Save Data</Button>
+        <Button onClick={handleSetSystemPrompt} style={goldButtonStyle}>Set System Prompt</Button>
+      </div>
+
+      </div>
+    </div>
+  );
+});
+
+
+
 
 
 
@@ -1040,6 +1444,89 @@ const confirmDeleteStyle = {
  */
 
 const Chatbot = () => {
+
+  const [dataStrings, setDataStrings] = useState([]); // Initialize with an empty array or fetched data
+
+  const [systemPrompt, setSystemPrompt] = useState("");
+
+  const saveData = async (data) => {
+    try {
+      const response = await fetch('http://localhost:3001/api/saveData', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error('Error saving data');
+      }
+      const result = await response.text();
+      console.log(result);
+    } catch (error) {
+      console.error('Failed to save data:', error);
+    }
+  };
+
+  const loadData = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/loadData');
+      if (!response.ok) {
+        throw new Error('Error loading data');
+      }
+      const data = await response.json();
+      console.log(data);
+      return data;
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      return [];
+    }
+  };
+  useEffect(() => {
+    // This checks if dataStrings is not empty before saving
+    if (dataStrings.length > 0) {
+      const saveDataToServer = async () => {
+        await saveData(dataStrings);
+      };
+      saveDataToServer();
+    }
+  }, [dataStrings]); // Dependency array - useEffect triggers when dataStrings changes
+  
+  
+
+  useEffect(() => {
+    const fetchDataStrings = async () => {
+      const fetchedData = await loadData();
+      setDataStrings(fetchedData);
+      // Implement fetching logic here
+      // const fetchedData = await yourFetchFunction();
+      // setDataStrings(fetchedData);
+    };
+    fetchDataStrings();
+  }, []);
+
+  const handleDataSave = async (data) => {
+    
+    // Save data to server or local storage
+    // Update the state to either add new data or update existing data
+    setDataStrings(prevData => {
+      const existingDataIndex = prevData.findIndex(d => d.name === data.name);
+      if (existingDataIndex !== -1) {
+        // Update existing data
+        const updatedData = [...prevData];
+        updatedData[existingDataIndex] = data;
+        return updatedData;
+      } else {
+        // Add new data
+        return [...prevData, data];
+      }
+    });
+    
+  };
+  
+  
+  
+
 
   const [prompts, setPrompts] = useState([]); // State to store user prompts
   const [currentContextName, setCurrentContextName] = useState("");
@@ -1138,6 +1625,7 @@ const Chatbot = () => {
   
 `;
 
+
 const [showHelpPopup, setShowHelpPopup] = useState(false);
 const helpPopupRef = useRef(null);
 
@@ -1172,7 +1660,22 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
 
 // Define styles for popupStyle and closeButtonStyle
 
-  
+const [showDataPopup, setShowDataPopup] = useState(false);
+const dataPopupRef = useRef(null);
+
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (dataPopupRef.current && !dataPopupRef.current.contains(event.target)) {
+      setShowDataPopup(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []); // Ensure the effect runs only once
+
 
   const [showSettings, setShowSettings] = useState(false);
   const settingsRef = useRef(null);
@@ -1252,8 +1755,8 @@ const HelpPopup = React.forwardRef(({ onClose, content }, ref) => {
     setCurrentMessage(botReply);
     setContextDefault(messages, botReply);
     setCurrentBotMessageText("");
-
-    const botResponse = await BotFunctions.getBotReply(input, currentMessage, messages, pdfs, settings['Use Api'], updateBotMessage);
+      
+    const botResponse = await BotFunctions.getBotReply(systemPrompt.content + input, currentMessage, messages, pdfs, settings['Use Api'], updateBotMessage);
     // console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
     
     // console.log("______________________________________________")
@@ -1737,6 +2240,9 @@ function parsePageSelection(input) {
   
   };
   
+  const handleDataCommand = () => {
+    setShowDataPopup(true); // Toggle the visibility of the data popup
+  };
   
 
   const commandHandlers = {
@@ -1749,6 +2255,7 @@ function parsePageSelection(input) {
     "!save": saveChatContext,
     "!load": loadChatContext,
     "!pdf": handlePdfCommand,
+    "!data": handleDataCommand,
     // Add more mappings as needed
   };
   
@@ -1763,6 +2270,7 @@ function parsePageSelection(input) {
     { command: "!save", description: "Save the current context"},
     { command: "!load", description: "Load a saved context"},
     { command: "!pdf", description: "PDF commands"},
+    { command: "!data", description: "string data storage"},
     // Add more commands as needed
   ];
   
@@ -2198,8 +2706,8 @@ const updateTextareaHeight = () => {
     setCurrentMessage(botReply);
     setContextDefault(messages, botReply);
     setCurrentBotMessageText("");
-
-    const botResponse = await BotFunctions.getBotReply(input, currentMessage, messages, pdfs, settings['Use Api'], updateBotMessage);
+    console.log(systemPrompt);
+    const botResponse = await BotFunctions.getBotReply(systemPrompt.content + input, currentMessage, messages, pdfs, settings['Use Api'], updateBotMessage);
     // console.log("SDHFISHDFOIHDSKLFHDSLKHJGDKLSH:FSOIISEH:LDJS:FLKJDSKF:SJD:KLFJGD************");
     
     // console.log("______________________________________________")
@@ -2278,7 +2786,7 @@ const updateTextareaHeight = () => {
       left: '0',
       width: '33%',
       backgroundColor: '#333', // Dark background
-      color: '#fff', // Light text for contrast
+      color: '#ccc', // Light text for contrast
       border: '1px solid #555', // Slight border for definition
       borderRadius: '4px', // Rounded corners
       boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.5)', // Subtle shadow for depth
@@ -2388,6 +2896,9 @@ const triggerFileInputClick = () => {
       {showPromptPopup && (
         <PromptPopup
           ref={promptPopupRef}
+          dataStrings={dataStrings}
+          initialDataStrings={dataStrings}
+          setDataStrings={setDataStrings}
           prompts={prompts}
       setPrompts={setPrompts}
       savePromptsToServer={savePromptsToServer}
@@ -2412,6 +2923,19 @@ const triggerFileInputClick = () => {
         onClose={() => setShowHelpPopup(false)}
       />
     )}
+    
+    {showDataPopup && (
+  <DataPopup
+  ref={dataPopupRef}
+    dataStrings={dataStrings}
+    setSystemPrompt={setSystemPrompt}
+    systemPrompt={systemPrompt}
+    setDataStrings={setDataStrings}
+    onDataSave={handleDataSave}
+    onClose={() => setShowDataPopup(false)}
+  />
+)}
+
       <div
         style={{
           display: "flex",
@@ -2420,13 +2944,13 @@ const triggerFileInputClick = () => {
           width: "100vw",
           height: "100vh",
           backgroundColor: "#282c34",
-          color: "#fff",
+          color: "#ccc",
         }}
       >
         <div
           style={{
             display: "flex",
-            justifyContent: "center",
+            justifyContent: "center", 
             alignItems: "center",
             width: "100vw",
             height: "100vh",

@@ -20,6 +20,29 @@ app.use(express.static(path.join(__dirname, 'build'))); // Serve your React App
 
 const filePath = path.join(__dirname, 'prompts.json');
 
+const dataFilePath = path.join(__dirname, 'data.json');
+
+app.post('/api/saveData', (req, res) => {
+    fs.writeFile(dataFilePath, JSON.stringify(req.body, null, 2), 'utf8', (err) => {
+      if (err) {
+        return res.status(500).send('Error writing to the file');
+      }
+      res.send('Data saved successfully');
+    });
+  });
+
+  app.get('/api/loadData', (req, res) => {
+    fs.readFile(dataFilePath, 'utf8', (err, data) => {
+      if (err) {
+        return res.status(500).send('Error reading the file');
+      }
+      res.send(data);
+    });
+  });
+  
+  
+
+
 // Endpoint to get prompts
 app.get('/api/prompts', (req, res) => {
   fs.readFile(filePath, 'utf8', (err, data) => {

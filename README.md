@@ -1,8 +1,4 @@
 #### todo: 
-- List of strings datastore:  for use in custom instructions and prompts as input variables
-
-- Custom Instructions: simple textbox that appends custom instructions to the chat.  Can set specific strings from datastore using chatcommands, or clicking on a list of options.
-
 - contextual sidebar: Context bar with token count on top.  Has list of contexts for user to choose from, and displays links as well as key points in the current context of the chat(button to update this, toggle switch to auto update in settings).  Should also contain other useful buttons
 
 - internet search: generate a few google search querys based on the context + user query, and then output the links along with a summary and answer the users request.
