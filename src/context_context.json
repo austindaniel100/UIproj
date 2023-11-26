@@ -2,7 +2,9 @@
   "messageTree": {
     "message": "",
     "sender": "root",
-    "inContext": false,
+    "row": 0,
+    "col": 0,
+    "inContext": true,
     "parentId": null,
     "children": [
       {
@@ -22,7 +24,115 @@
             "col": 0,
             "inContext": true,
             "parentId": "1700683356554-0.19436668579727834",
-            "children": []
+            "children": [
+              {
+                "id": "1701042832698-0.8590523679611",
+                "message": "hi",
+                "sender": "user",
+                "row": 0,
+                "col": 0,
+                "inContext": false,
+                "parentId": "1700683356554-0.09500328873031005",
+                "children": [
+                  {
+                    "id": "1701042832698-0.8358898005876323",
+                    "message": "API call failed or is not turned on.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1",
+                    "sender": "bot",
+                    "row": 0,
+                    "col": 0,
+                    "inContext": false,
+                    "parentId": "1701042832698-0.8590523679611",
+                    "children": []
+                  },
+                  {
+                    "id": "1701042837142-0.7948735679580505",
+                    "message": "branch",
+                    "sender": "user",
+                    "row": 0,
+                    "col": 0,
+                    "inContext": true,
+                    "parentId": "1701042832698-0.8590523679611",
+                    "children": [
+                      {
+                        "id": "1701042837142-0.8112966796346006",
+                        "message": "API call failed or is not turned on.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1",
+                        "sender": "bot",
+                        "row": 0,
+                        "col": 0,
+                        "inContext": true,
+                        "parentId": "1701042837142-0.7948735679580505",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "1701042843955-0.8264426995816323",
+                "message": "branch",
+                "sender": "user",
+                "row": 0,
+                "col": 0,
+                "inContext": true,
+                "parentId": "1700683356554-0.09500328873031005",
+                "children": [
+                  {
+                    "id": "1701042843955-0.40221804140185813",
+                    "message": "API call failed or is not turned on.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1",
+                    "sender": "bot",
+                    "row": 0,
+                    "col": 0,
+                    "inContext": true,
+                    "parentId": "1701042843955-0.8264426995816323",
+                    "children": [
+                      {
+                        "id": "1701042848362-0.822375822756152",
+                        "message": "chat",
+                        "sender": "user",
+                        "row": 0,
+                        "col": 0,
+                        "inContext": true,
+                        "parentId": "1701042843955-0.40221804140185813",
+                        "children": [
+                          {
+                            "id": "1701042848362-0.006756151928849929",
+                            "message": "API call failed or is not turned on.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1",
+                            "sender": "bot",
+                            "row": 0,
+                            "col": 0,
+                            "inContext": true,
+                            "parentId": "1701042848362-0.822375822756152",
+                            "children": [
+                              {
+                                "id": "1701042849544-0.965075986552026",
+                                "message": "chat",
+                                "sender": "user",
+                                "row": 0,
+                                "col": 0,
+                                "inContext": true,
+                                "parentId": "1701042848362-0.006756151928849929",
+                                "children": [
+                                  {
+                                    "id": "1701042849544-0.3502803664277898",
+                                    "message": "API call failed or is not turned on.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1",
+                                    "sender": "bot",
+                                    "row": 0,
+                                    "col": 0,
+                                    "inContext": true,
+                                    "parentId": "1701042849544-0.965075986552026",
+                                    "children": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
           }
         ]
       }

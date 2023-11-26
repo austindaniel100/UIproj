@@ -1,0 +1,52 @@
+{
+  "messageTree": {
+    "message": "",
+    "sender": "root",
+    "inContext": false,
+    "parentId": null,
+    "children": [
+      {
+        "id": "1701042624164-0.9938723839032906",
+        "message": "give me some cognitive science insights based on the pdfs",
+        "sender": "user",
+        "row": 0,
+        "col": 0,
+        "inContext": true,
+        "parentId": null,
+        "children": [
+          {
+            "id": "1701042624164-0.4573331323283567",
+            "message": "Sure! Here are some cognitive science insights based on the provided PDFs:\n\n1. Representational view of cognition: The representational view of cognition suggests that our cognitive processes involve the manipulation of mental representations, such as concepts or images. However, some researchers, like Heidegger, argue against this view and propose that our actions in the world are not solely based on representations but rather on our physical skills and embodiment.\n\n2. Embodied interaction: The concept of embodied interaction emphasizes the importance of our physical interactions with the world in shaping cognition. It suggests that our understanding and knowledge are not solely based on internal mental processes but also on our bodily experiences and interactions with the environment.\n\n3. Robotics and embodiment: Research in robotics has also explored the idea of embodiment, where robots learn about their environments through physical interactions rather than relying solely on preprogrammed knowledge. This approach contrasts with traditional rule-based approaches to building robots.\n\n4. Expanded range of representations: Cognitive science suggests that we may need to expand the range of representations considered beyond traditional linguistic or visual ones. This could include incorporating other sensory modalities like smell, taste, hearing, and touch into our representations to capture a more comprehensive understanding of the world.\n\n5. Social aspects of cognition: Cognitive science also recognizes the social nature of cognition. Our mental representations can be shared and used collectively through processes like communication, analogy, and cooperation among individuals. Understanding consciousness and empathy can also benefit from considering cognition from a social perspective.\n\n6. Complexity in explanation: Explaining cognitive phenomena at different levels (neurons, individuals, societies) is challenging due to their complex interactions. Reductionist approaches that focus solely on individual-level explanations may not be sufficient to fully understand complex cognitive processes.\n\nThese insights highlight the diverse perspectives within cognitive science and underscore the importance of considering both internal mental processes and external embodied interactions in understanding human cognition.",
+            "sender": "bot",
+            "row": 0,
+            "col": 0,
+            "inContext": true,
+            "parentId": "1701042624164-0.9938723839032906",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  "pdfFileReferences": [
+    {
+      "fileUrl": "http://localhost:3001/uploads/Mind_Textbook%20(1)-204-217.pdf",
+      "fileName": "Mind_Textbook (1)-204-217.pdf",
+      "numPages": 14,
+      "selectedPages": [
+        3,
+        6
+      ]
+    },
+    {
+      "fileUrl": "http://localhost:3001/uploads/Mind_Textbook%20(1)-218-229.pdf",
+      "fileName": "Mind_Textbook (1)-218-229.pdf",
+      "numPages": 12,
+      "selectedPages": [
+        5,
+        8,
+        12
+      ]
+    }
+  ]
+}

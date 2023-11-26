@@ -18,6 +18,7 @@ const filePath = path.join(__dirname, "prompts.json");
 const dataFilePath = path.join(__dirname, "data.json");
 
 app.post("/api/saveData", (req, res) => {
+  console.log("Received data:", req.body); // Log the received data (for debugging)
   fs.writeFile(
     dataFilePath,
     JSON.stringify(req.body, null, 2),
@@ -52,6 +53,7 @@ app.get("/api/prompts", (req, res) => {
 
 // Endpoint to save prompts
 app.post("/api/prompts", (req, res) => {
+  console.log("Received prompts:", req.body); // Log the received prompts (for debugging
   fs.writeFile(filePath, JSON.stringify(req.body, null, 2), "utf8", (err) => {
     if (err) {
       return res.status(500).send("Error writing to the file");
@@ -147,6 +149,7 @@ app.post(
   "/api/uploadPdf",
   bodyParser.json({ limit: "50mb" }),
   async (req, res) => {
+    console.log("Received PDF file:", req.body); // Log the received PDF file (for debugging
     const { base64Pdf, fileName } = req.body;
 
     // Ensure the uploads directory exists

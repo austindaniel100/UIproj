@@ -1,10 +1,10 @@
 [
   {
-    "name": "asdf",
-    "content": "ffsdssadfsdfasdgadsdfdsfsdfdadsdfdsfsdfdadsdfdsfsdfdadsdfdsfsdfdadsdfdsfsdfdadsdfdsfsdfdadsdfdsfsdfdadsdfdsfsdfdadsdfdsfsdfdadsdfdsfsdfdadsdfdsfsdfdadsdfdsfsdfdadsdfdsfsdfd"
+    "name": "emails",
+    "content": "Subject: Urgent: Server Downtime Alert\n\nDear Team,\n\nOur main server experienced unexpected downtime at 3:45 PM today. We are actively investigating the cause. Initial analysis suggests a possible hardware failure. Our IT team is working diligently to resolve the issue. We anticipate a resolution within the next 2 hours. Please save your work locally to avoid data loss.\n\nBest,\n[Your Name]\n\nSubject: Meeting Reschedule: New Date & Time\n\nHello All,\n\nDue to unforeseen circumstances, I must reschedule our team meeting originally planned for tomorrow. The new meeting date is Wednesday, March 10th, at 10:00 AM. Please update your calendars accordingly. Apologies for any inconvenience.\n\nBest regards,\n[Your Name]\n\nSubject: Welcome to the Team, Jane!\n\nHi Jane,\n\nWelcome to the XYZ Corp family! We're thrilled to have you join our marketing team. Your experience and skills will be a tremendous asset to our projects. Let's meet this Thursday at 9 AM for a quick onboarding session. Looking forward to working together.\n\nWarm regards,\n[Your Name]\n\nSubject: Project Deadline Reminder\n\nDear Project Team,\n\nThis is a gentle reminder that the deadline for Project Falcon is approaching on April 15th. Please ensure that all deliverables are on track. Reach out if you need additional support or resources. Let's make this project a success!\n\nBest,\n[Your Name]\n\nSubject: Feedback Requested: New Website Design\n\nTeam,\n\nWe've recently updated our website design. Your feedback is crucial for further improvements. Please review the new layout by the end of this week and submit your comments or suggestions using the feedback form. Your input is greatly valued.\n\nThank you,\n[Your Name]"
   },
   {
-    "name": "ggg",
-    "content": "asdfasdf"
+    "name": "systemPromptConcise",
+    "content": "You are now interacting with a GPT model trained for efficient and precise information delivery. When responding, please prioritize accuracy and brevity. Provide direct answers to questions, focusing on the essential details. Avoid lengthy explanations unless specifically requested. Your responses should be informative, to the point, and easy to understand, ensuring clarity and relevance to the user's query."
   }
 ]

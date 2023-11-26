@@ -1,7 +1,7 @@
 [
   {
     "name": "Write Email",
-    "content": "Write an email to {name} about {topic}.  Keep this email in my style of {emails}",
+    "content": "Write an email to {name} about {topic}.  Keep this email in my style of {emails}asdfasdf lol",
     "parameters": {
       "name": "john",
       "topic": "accounting",

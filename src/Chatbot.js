@@ -741,6 +741,7 @@ const PromptPopup = React.forwardRef(
           return dataString ? dataString.content : match; // Replace with content or leave placeholder
         }
       );
+      console.log("message: ", finalMessage);
 
       onSend(finalMessage); // Send the final message
     };
@@ -1580,6 +1581,7 @@ const Chatbot = () => {
   const pdfViewerRef = useRef();
 
   const savePromptsToServer = async () => {
+    console.log("Saving prompts to server");
     try {
       const response = await fetch("http://localhost:3001/api/prompts", {
         method: "POST",
@@ -1810,7 +1812,7 @@ const Chatbot = () => {
     setCurrentBotMessageText("");
 
     const botResponse = await BotFunctions.getBotReply(
-      systemPrompt.content + input,
+      systemPrompt.content + message,
       currentMessage,
       messages,
       pdfs,
