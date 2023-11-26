@@ -128,6 +128,7 @@ const PdfViewerComponent = forwardRef(({ pdfs, setPdfs, setTokenCount, input, cu
             setOpenPopupIndex(pdfIndex);
         }
     };
+    
 
     // Expose openPdfViewer to parent components
     useImperativeHandle(ref, () => ({

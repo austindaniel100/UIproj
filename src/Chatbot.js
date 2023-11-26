@@ -2389,7 +2389,7 @@ const updateTextareaHeight = () => {
     BotFunctions.getContextTokens(currentMessage, messages, pdfs).then((tokens) => {
       setTokenCount(tokens + Math.ceil(input.length / 4));
     });
-  }, [input, messages, pdfs]);
+  }, [input, messages, pdfs, currentMessage, currentBotMessage, currentBotMessageText]);
 
   let currentRow = 0;
   let currentCol = 0;
@@ -2810,6 +2810,7 @@ const updateTextareaHeight = () => {
       zIndex: 1000, // Ensure it's above other elements
       overflow: 'hidden', // In case of too many suggestions
       maxHeight: '200px', // Limit the height
+      marginLeft: '75px'
     };
     
     const predictiveViewItemStyle = {

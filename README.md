@@ -1,11 +1,3 @@
-#### todo: 
-- contextual sidebar: add a bar showing the context percentage
-
-- gpt selects prompts: command to query gpt and it will select the prompt most closely related to your request and run it with its chosen parameters.
-
-- pdf auto select: use gpt, pdf, and current conversation context to decide which pdf pages need to be selected.
-
-- prompt generator button from name: input is name(para1, para2), generate prompt with parameters, and change name input area to just name and save prompt
 # Chatbot UI
 ![Screenshot](standard.PNG)
 
