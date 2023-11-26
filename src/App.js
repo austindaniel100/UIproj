@@ -1,9 +1,6 @@
-import logo from './logo.svg';
-import './App.css';
-import MessageTree from './MessageTree';
-import Chatbot from './Chatbot';
-import MySideNav from './MySideNav';
-
+import logo from "./logo.svg";
+import "./App.css";
+import Chatbot from "./Chatbot";
 
 function App() {
   return (
