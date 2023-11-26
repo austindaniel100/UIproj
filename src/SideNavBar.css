@@ -475,3 +475,16 @@
 .current-context:hover {
     background-color: #4d4c75; /* Different color on hover for the selected context */
 }
+.token-usage-label {
+    font-size: 12px; /* Small font size */
+    color: #333; /* Dark color for better readability */
+    margin-bottom: 4px; /* Tight margin to the bar below */
+    margin-top: 0; /* Minimal margin at the top */
+    text-align: left; /* Left aligned text */
+    padding-left: 5px; /* Padding to not stick to the edge */
+    line-height: 1.2; /* Adjust line height for compact appearance */
+    color: #ccc;
+}
+.side-nav.collapsed .token-usage-label {
+    display: none;
+}

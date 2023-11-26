@@ -1,11 +1,12 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import Modal from 'react-modal';
+import BotFunctions from "./botReplyHandler";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 Modal.setAppElement('#root');
 
-const PdfViewerComponent = forwardRef(({ pdfs, setPdfs }, ref) => {
+const PdfViewerComponent = forwardRef(({ pdfs, setPdfs, setTokenCount, input, currentMessage, messages }, ref) => {
     const [openPopupIndex, setOpenPopupIndex] = useState(-1);
     const [hoveredPage, setHoveredPage] = useState({ pdfIndex: null, pageNumber: null });
     const [isMouseDown, setIsMouseDown] = useState(false);
@@ -82,6 +83,9 @@ const PdfViewerComponent = forwardRef(({ pdfs, setPdfs }, ref) => {
             }
             return pdf;
         }));
+        BotFunctions.getContextTokens(currentMessage, messages, pdfs).then((tokens) => {
+            setTokenCount(tokens + Math.ceil(input.length / 4));
+          });
     };
 
     // Handle mouse down event

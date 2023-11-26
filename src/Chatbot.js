@@ -228,7 +228,7 @@ const MessageNode = (
  * rendering via React refs.
  */
 
-function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
+function MiniView({ messages, setCurrentMessage, increment, current, setInc, setTokenCount, input, currentMessage, pdfs }) {
   const ref = useRef();
   const svgRef = useRef();
   const gRef = useRef();
@@ -244,6 +244,10 @@ function MiniView({ messages, setCurrentMessage, increment, current, setInc }) {
     }
     return null;
   };
+
+  useEffect(() => {
+    
+  }, []);
   
 
   const zoom = d3
@@ -348,6 +352,9 @@ g.selectAll(".click-capture")
   if (event.ctrlKey) {
     // Ctrl-click functionality
     node.data.inContext = !node.data.inContext;
+    BotFunctions.getContextTokens(currentMessage, messages, pdfs).then((tokens) => {
+      setTokenCount(tokens + Math.ceil(input.length / 4));
+    });
     g.selectAll(".node")
       .filter(d => d.data.id === node.data.id) // Filter to get the corresponding node
       .attr("filter", node.data.inContext ? "url(#glow)" : "none"); // Update the glow 
@@ -1444,6 +1451,10 @@ const DataPopup = React.forwardRef(({ onClose, onDataSave, dataStrings = [], set
  */
 
 const Chatbot = () => {
+  const [tokenCount, setTokenCount] = useState(0);
+  const [tokenTotal, setTokenTotal] = useState(4096);
+
+  
 
   const [dataStrings, setDataStrings] = useState([]); // Initialize with an empty array or fetched data
 
@@ -2374,6 +2385,12 @@ const updateTextareaHeight = () => {
   const messagesRef = useRef(null);
   const messageRefs = useRef([]);
 
+  useEffect(() => {
+    BotFunctions.getContextTokens(currentMessage, messages, pdfs).then((tokens) => {
+      setTokenCount(tokens + Math.ceil(input.length / 4));
+    });
+  }, [input, messages, pdfs]);
+
   let currentRow = 0;
   let currentCol = 0;
   let maxColInLastRow = 0;
@@ -2936,6 +2953,9 @@ const triggerFileInputClick = () => {
   />
 )}
 <SideNavBar 
+className="dark-scrollbar"
+tokenCount={tokenCount}
+tokenTotal={tokenTotal}
 systemPrompt={systemPrompt}
 pdfs={pdfs}
 currentMessage={currentMessage}
@@ -3000,6 +3020,10 @@ useApi={settings['Use Api']}
                 {settings['PDF Viewer'] && (
                 <div style={{...svgStyles, maxHeight: '21.375vh', overflowY: 'auto' }} className="dark-scrollbar">
                     <PdfViewerComponent 
+                    messages = {messages}
+                    setTokenCount={setTokenCount}
+                    input={input}
+                    currentMessage={currentMessage}
                         pdfs={pdfs} 
                         setPdfs={setPdfs} 
                         onFileChange={onFileChange} 
@@ -3012,6 +3036,10 @@ useApi={settings['Use Api']}
               {settings['Miniview'] && (
               <div style={{ flex: 3}} className="dark-scrollbar">
                 <MiniView
+                  setTokenCount={setTokenCount}
+                  pdfs={pdfs}
+                  input={input}
+                  currentMessage={currentMessage}
                   messages={messages}
                   setCurrentMessage={setCurrentMessage}
                   increment={messageCount}
@@ -3035,10 +3063,11 @@ useApi={settings['Use Api']}
                 >
                   {suggestions.length > 0 && <PredictiveView suggestions={suggestions} />}
                   <TextareaAutosize
+                  className='dark-scrollbar'
                     ref={textareaRef}
                     minRows={1}
                     maxRows={10}
-                    style={{...textareaStyles, marginTop: suggestions.length > 0 ? '210px' : '10px'}}
+                    style={{...textareaStyles, marginTop: suggestions.length > 0 ? '210px' : '10px', marginLeft: '75px'}}
                     value={input}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}

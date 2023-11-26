@@ -3,10 +3,10 @@ import axios from 'axios'; // Make sure to install axios if not already done
 import './SideNavBar.css';
 import BotFunctions from './botReplyHandler';
 
-const SideNavBar = ({ systemPrompt, setSystemPrompt, setShowPromptPopup, setShowDataPopup, useApi, loadContext, saveContext, currentMessage, messageTree, pdfs }) => {
+const SideNavBar = ({ systemPrompt, setSystemPrompt, setShowPromptPopup, setShowDataPopup, useApi, loadContext, saveContext, currentMessage, messageTree, pdfs, tokenCount, tokenTotal }) => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [contextInput, setContextInput] = useState('');
-    const [chatInput, setChatInput] = useState('Your default value here');
+    const [chatInput, setChatInput] = useState('Summarize the current context');
 
     const [contextualChatArea, setContextualChatArea] = useState('');
 
@@ -62,6 +62,32 @@ const SideNavBar = ({ systemPrompt, setSystemPrompt, setShowPromptPopup, setShow
             // Handle any errors in saving context here
         }
     };
+
+    const getProgressBarColor = (percentage) => {
+        if (percentage <= 50) return '#6BCB77'; // Green
+        if (percentage <= 85) return '#F4D35E'; // Yellow
+        return '#EF476F'; // Red
+    };
+
+    // Calculate token usage percentage
+    const tokenPercentage = tokenCount / tokenTotal * 100;
+    const progressBarColor = getProgressBarColor(tokenPercentage);
+
+    const progressBarStyle = {
+        height: '10px',
+        width: `${Math.min(tokenPercentage, 100)}%`, // Ensure it doesn't exceed 100%
+        backgroundColor: progressBarColor,
+        borderRadius: '5px',
+        transition: 'width 0.5s ease-in-out, background-color 0.5s ease-in-out',
+    };
+
+    const progressBarContainerStyle = {
+        backgroundColor: '#404040',
+        borderRadius: '5px',
+        padding: '2px',
+        marginTop: '5px',
+        marginBottom: '15px',
+    };
     
 
     const buttonStyles = {
@@ -89,9 +115,17 @@ const SideNavBar = ({ systemPrompt, setSystemPrompt, setShowPromptPopup, setShow
 
     return (
         <div className={`side-nav ${isCollapsed ? 'collapsed' : ''}`}>
+
             <div className="toggle-btn" onClick={handleToggle}>
                 <span className="toggle-icon">{isCollapsed ? '>' : '<'}</span>
             </div>
+            <div className="token-usage-label">
+                Current Context: {tokenCount} / {tokenTotal}
+            </div>
+            <div style={progressBarContainerStyle}>
+                <div style={progressBarStyle}></div>
+            </div>
+            
 
             {/* Custom Instruction Section */}
             <div className="nav-item">

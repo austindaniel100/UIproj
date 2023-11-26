@@ -270,6 +270,34 @@ const getBotReply = async (input, currentMessage, messagesTree, pdfs, useApi, up
     
 };
 
+const getContextTokens = async (currentMessage, messagesTree, pdfs) => {
+  let fullPrompt = "";
+  const pdfsString = await compilePdfContext(pdfs);
+    console.log(pdfsString);
+    // const pdfsString = ""
+
+    const conversationHistory = getConversationHistory(currentMessage, messagesTree);
+    console.log(conversationHistory);
+    if (pdfsString !== "") {
+      console.log("HOW????");
+      fullPrompt = fullPrompt +  "#PDFS: " + pdfsString
+    }
+    if (conversationHistory !== "") {
+      console.log("HOW????!!");
+      fullPrompt = fullPrompt +  "#Conversation History: " + conversationHistory
+    }
+
+    // More accurate estimation of token count
+  const words = fullPrompt.split(/\s+/);
+  const averageCharactersPerWord = 4.5; // Average length of English words
+  const tokenCount = Math.ceil(words.length + fullPrompt.length / averageCharactersPerWord);
+  console.log(`Estimated tokens in prompt: ${tokenCount}`);
+
+  return tokenCount;
+
+
+};
+
 
 
 
@@ -278,4 +306,5 @@ export default {
   callApi,
   callApiNoStream,
   callApiContext,
+  getContextTokens,
 };
