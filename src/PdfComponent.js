@@ -293,6 +293,20 @@ const PdfViewerComponent = forwardRef(
       backgroundColor: isDarkMode ? "#2D2D2D" : "#FFF", // Change background color
     };
 
+    const hintLabelStyle = {
+        color: '#ccc', // Light grey color to match the existing style
+        fontSize: '14px', // Adjust font size as needed
+        fontWeight: '400', // Normal font weight
+        padding: '8px', // Add some padding for spacing
+        margin: '0 10px', // Margin to separate it from the button
+        display: 'inline-flex', // Inline flex to align with the button
+        alignItems: 'center', // Align the text vertically
+        justifyContent: 'center', // Center the text horizontally
+        boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.2)', // Box shadow to match the button
+        userSelect: 'none', // Prevent the user from selecting the text
+      };
+      
+
     const calculateOverlayHeight = (pdf) => {
       const totalPages = pdf.numPages || 0;
       const selectedPages = pdf.selectedPages.size;
@@ -358,6 +372,9 @@ const PdfViewerComponent = forwardRef(
               >
                 {isDarkMode ? "Dark PDFs" : "Light PDFs"}
               </button>
+              <div style={hintLabelStyle}>
+      hint: click and drag to select, ctrl + click and drag to deselect, hover for large view
+    </div>
               <div style={{ display: "flex", justifyContent: "center" }}>
                 <div style={{ width: "30%" }}>
                   <Document

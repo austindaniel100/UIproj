@@ -6,8 +6,8 @@
     "parentId": null,
     "children": [
       {
-        "id": "1700687297594-0.7202880740251465",
-        "message": "hello",
+        "id": "1701043271869-0.3984761289145693",
+        "message": "Write an email to john about accounting.  Keep this email in my style of Subject: Urgent: Server Downtime Alert\n\nDear Team,\n\nOur main server experienced unexpected downtime at 3:45 PM today. We are actively investigating the cause. Initial analysis suggests a possible hardware failure. Our IT team is working diligently to resolve the issue. We anticipate a resolution within the next 2 hours. Please save your work locally to avoid data loss.\n\nBest,\n[Your Name]\n\nSubject: Meeting Reschedule: New Date & Time\n\nHello All,\n\nDue to unforeseen circumstances, I must reschedule our team meeting originally planned for tomorrow. The new meeting date is Wednesday, March 10th, at 10:00 AM. Please update your calendars accordingly. Apologies for any inconvenience.\n\nBest regards,\n[Your Name]\n\nSubject: Welcome to the Team, Jane!\n\nHi Jane,\n\nWelcome to the XYZ Corp family! We're thrilled to have you join our marketing team. Your experience and skills will be a tremendous asset to our projects. Let's meet this Thursday at 9 AM for a quick onboarding session. Looking forward to working together.\n\nWarm regards,\n[Your Name]\n\nSubject: Project Deadline Reminder\n\nDear Project Team,\n\nThis is a gentle reminder that the deadline for Project Falcon is approaching on April 15th. Please ensure that all deliverables are on track. Reach out if you need additional support or resources. Let's make this project a success!\n\nBest,\n[Your Name]\n\nSubject: Feedback Requested: New Website Design\n\nTeam,\n\nWe've recently updated our website design. Your feedback is crucial for further improvements. Please review the new layout by the end of this week and submit your comments or suggestions using the feedback form. Your input is greatly valued.\n\nThank you,\n[Your Name]",
         "sender": "user",
         "row": 0,
         "col": 0,
@@ -15,58 +15,14 @@
         "parentId": null,
         "children": [
           {
-            "id": "1700687297594-0.03693711477867212",
-            "message": "Hello! How can I assist you today?",
+            "id": "1701043271869-0.22367472696464596",
+            "message": "Subject: Urgent: Accounting Issue\n\nHi John,\n\nI hope this email finds you well. I wanted to bring to your attention an urgent accounting issue that has recently come up. It seems that there has been a discrepancy in our financial records, and we need to address it immediately.\n\nUpon reviewing our records, we noticed a significant variance in the accounts receivable balance. This discrepancy could potentially have a negative impact on our financial statements and overall financial health. Our team is currently investigating the root cause of this issue, but we wanted to make you aware of it as soon as possible.\n\nWe understand the importance of accurate financial reporting and maintaining the integrity of our accounting processes. Rest assured, we are taking immediate action to rectify this situation and prevent any further discrepancies from occurring.\n\nIn the meantime, I kindly request your assistance in reviewing the recent transactions related to accounts receivable. Please double-check all invoices, payments, and any other relevant documentation to ensure their accuracy. If you come across any discrepancies or have any insights into what might have caused this issue, please let us know right away.\n\nWe appreciate your prompt attention to this matter and your dedication to maintaining the highest standards in our accounting practices. If you have any questions or need further information, please don't hesitate to reach out.\n\nThank you for your cooperation.\n\nBest regards,\n\n[Your Name]",
             "sender": "bot",
             "row": 0,
             "col": 0,
             "inContext": true,
-            "parentId": "1700687297594-0.7202880740251465",
-            "children": [
-              {
-                "id": "1700687308205-0.633092769891844",
-                "message": "write me an email to a coworker",
-                "sender": "user",
-                "row": 0,
-                "col": 0,
-                "inContext": true,
-                "parentId": "1700687297594-0.03693711477867212",
-                "children": [
-                  {
-                    "id": "1700687308205-0.1850516219732672",
-                    "message": "Sure, I can help you with that. Could you please provide me with the details of the email, such as the recipient's name, the subject, and the content?",
-                    "sender": "bot",
-                    "row": 0,
-                    "col": 0,
-                    "inContext": true,
-                    "parentId": "1700687308205-0.633092769891844",
-                    "children": [
-                      {
-                        "id": "1700687378849-0.8175588082633227",
-                        "message": "john, do my taxes already is the subject, and the content should be about telling him to do my taxes since he's my accountant and i'm paying him",
-                        "sender": "user",
-                        "row": 0,
-                        "col": 0,
-                        "inContext": true,
-                        "parentId": "1700687308205-0.1850516219732672",
-                        "children": [
-                          {
-                            "id": "1700687378849-0.8060875163932686",
-                            "message": "Subject: Urgent: Please complete my tax filing\n\nDear John,\n\nI hope this email finds you well. I am reaching out to discuss the status of my tax filing for the current year. As my trusted accountant, I have entrusted this important task to you, and I would appreciate it if you could complete it as soon as possible.\n\nI understand that you may have a busy schedule, but given that we are approaching the deadline, I kindly request your prompt attention to this matter. As a paying client, I rely on your expertise and professionalism to ensure that my taxes are filed accurately and in a timely manner.\n\nIf there are any additional documents or information needed from my end, please let me know, and I will be more than happy to provide them promptly. \n\nThank you for your attention to this matter and for your continued support as my accountant. I look forward to hearing from you soon with an update on the progress of my tax filing.\n\nBest regards,\n\n[Your Name]",
-                            "sender": "bot",
-                            "row": 0,
-                            "col": 0,
-                            "inContext": true,
-                            "parentId": "1700687378849-0.8175588082633227",
-                            "children": []
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
+            "parentId": "1701043271869-0.3984761289145693",
+            "children": []
           }
         ]
       }
