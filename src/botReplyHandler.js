@@ -249,9 +249,9 @@ const callApi = async (fullPrompt, useApi, updateBotMessage) => {
   } catch (error) {
     console.error("failed to fetch bot reply: ", error);
     updateBotMessage(
-      "API call failed or is not turned on.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1"
+      "API call failed or is not turned on.  To turn it on, type !toggle use api(or substring !t u), or !settings and toggle the button.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1"
     );
-    return "API call failed or is not turned on.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1";
+    return "API call failed or is not turned on.  To turn it on, type !toggle use api(or substring !t u), or !settings and toggle the button.  Default bot response. AHHH\n\nExtra lines to make the message more normal\n\n\n# header to show markdown\n\n## header2 to show more\n\n### codeblock: \n```python\n\nimport stuff\n\ndef code():\n\treturn 1";
   }
 };
 
